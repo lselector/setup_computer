@@ -9,5 +9,3 @@ do
     du -sm $mydir | awk '{printf "%4d %s\n", $1, $2}'
 done
 echo "ALL DONE"
-
-
