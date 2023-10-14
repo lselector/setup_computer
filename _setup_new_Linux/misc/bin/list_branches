@@ -1,0 +1,23 @@
+#---------------------------------------------------------------------------
+#! /usr/bin/env bash
+# script to list branches sorted by last commit date
+# by Brian Mason
+#---------------------------------------------------------------------------
+# prune deleted branch refs from the remote server
+git remote prune origin 2>&1 > /dev/null
+#---------------------------------------------------------------------------
+function get_branch_author_and_date {
+    local BRANCH_NAME=$1
+    git show --format="%ci \\t %an" $BRANCH_NAME | head -n 1
+}
+#---------------------------------------------------------------------------
+function get_all_branch_info {
+    for branch in $ALL_BRANCHES; do
+        echo -e $(get_branch_author_and_date $branch) \\t\\t $branch;
+    done
+}
+#---------------------------------------------------------------------------
+ALL_BRANCHES=$(git branch -r --no-merged | grep -v 'origin/HEAD' )
+#---------------------------------------------------------------------------
+get_all_branch_info | sort | perl -nle 's/(^.{10}).{16}(.*$)/$1$2/;print;'
+#---------------------------------------------------------------------------

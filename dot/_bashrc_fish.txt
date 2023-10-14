@@ -1,0 +1,131 @@
+
+# ------------------------------------
+# .bashrc for local machine only
+# ------------------------------------
+export SHELL=/bin/bash
+export BASH_SILENCE_DEPRECATION_WARNING=1
+export PYTHONDONTWRITEBYTECODE=1
+export PROMPT_COMMAND='PS1_PATH=$(sed "s:\([^/\.]\)[^/]*/:\1/:g" <<< ${PWD/#$HOME/\~})'
+export PS1='\u@\h:$PS1_PATH\$ '
+# export PS1='\u@LevMBP:\w > '
+# ------------------------------------
+PATH=$HOME/anaconda3/bin
+PATH=$PATH:.
+PATH=$PATH:$HOME/docs/bin
+PATH=$PATH:/usr/local/bin
+PATH=$PATH:/usr/bin
+PATH=$PATH:/bin
+PATH=$PATH:/usr/sbin
+PATH=$PATH:/sbin
+# PATH=$PATH:/usr/local/mysql-8.0.19-macos10.15-x86_64/bin
+# PATH=$PATH:/Library/TeX/texbin
+# PATH=$PATH:$HOME/.local/lib/aws/bin
+# PATH=$PATH:/usr/local/go/bin
+export PATH
+# ------------------------------------
+# PYTHONPATH="$HOME/anaconda3/bin:./py_lib:$HOME/docs/py_lib"
+PYTHONPATH="./py_lib:$HOME/docs/py_lib"
+export PYTHONPATH
+# ------------------------------------
+# export JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk1.7.0_55.jdk/Contents/Home
+# export JRE_HOME=$JAVA_HOME
+# ------------------------------------
+export SSHDIR=$HOME/.ssh
+export HISTSIZE=10000
+export HISTFILESIZE=10000
+# ---------------------------------------------------------------
+# function to source file only if it exists
+mysource () {
+    [[ -f "$1" ]] && source "$1"
+}
+# ---------------------------------------------------------------
+mysource $HOME/.bash_aliases
+mysource $HOME/.mygit
+mysource $HOME/.netsuite
+# mysource /Users/levselector/perl5/perlbrew/etc/bashrc
+export BAT_THEME="OneHalfLight"
+# --------------------------------------------------------------
+# EXA - https://jlk.fjfi.cvut.cz/arch/manpages/man/exa.1.en
+EXA_COLORS="uu=8;31:ex=8;31:sn=8;34:sb=8;34:di=10;32"
+EXA_COLORS="$EXA_COLORS:ur=8;31:uw=8;31:ux=8;31:ue=8;31"
+EXA_COLORS="$EXA_COLORS:gr=8;34:gw=8;34:gx=8;34:tr=8;31:tw=8;31:tx=8;31:*.md=8;31:README*=8;31"
+export EXA_COLORS
+
+# --------------------------------------------------------------
+path ()
+{
+    echo "${PATH//:/'
+'}"
+}
+# --------------------------------------------------------------
+pypath ()
+{
+    echo "${PYTHONPATH//:/'
+'}"
+}
+
+# --------------------------------------------------------------
+# # find aliases
+# mdfind -0 kMDItemKind=Alias -onlyin ./ | xargs -0 ls -alF
+# 
+# # find links
+# find ./ -type l -print0 | xargs -0 ls -alF
+# --------------------------------------------------------------
+# vv() {
+#   mydir=$(pwd)
+#   cd /Users/levselector/test/myclean/log
+#   echo "Check for running scripts:"
+#   ps auxww | grep ns_ss.py | grep -v grep
+#   echo " "
+#   echo "Check for FAILs:"
+#   grep FAIL *
+#   echo " "
+#   echo "Check for speed and remaining times:"
+#   for f in $(ls -1 *txt); do 
+#     echo "$f"; 
+#     grep -P 't_pg_|T_remain|N_pg_|Estimated' $f | tail -4;
+#     grep -P 'FINISHED' $f;
+#     echo " "; 
+#   done
+#   cd $mydir
+# }
+# --------------------------------------------------------------
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/Users/levselector/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/Users/levselector/anaconda3/etc/profile.d/conda.sh" ]; then
+        . "/Users/levselector/anaconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/Users/levselector/anaconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+# --------------------------------------------------------------
+# Put this code at the end of your .bashrc 
+# to start fish with your bash configs loaded
+# It will activate fish if and only if 
+# it exists and is executable and if this is a new session.
+# i.e. if this is a login shell. 
+# Note:
+#     $- variable in bash contains a string representing the flags which are set
+#     so echo $- normally outputs this short string:  himBH
+#     where 'i' flag means "interactive"
+#     [[ -x somefile ]] checks if the file exists and is executable
+
+FISH_LOCATION=$(which fish)
+
+if [ -z "$FISH_FLAG" ]; then
+    export FISH_FLAG="not_set"
+else
+    export FISH_FLAG="was_set"
+fi
+
+if echo $- | grep -q 'i' && [[ -x $FISH_LOCATION ]] && [[ "$FISH_FLAG" = "not_set" ]]; then
+    # echo 
+    exec env SHELL=$FISH_LOCATION $FISH_LOCATION -i
+fi
+# --------------------------------------------------------------

@@ -1,0 +1,13 @@
+# --------------------------------------------------------------
+# ipython commands to be executed when we enter ipython
+# mostly used to un magic commands, like creating aliases
+# --------------------------------------------------------------
+%alias vi  /usr/bin/vim
+%alias vim /usr/bin/vim
+%alias grep /usr/local/bin/ggrep -n -P
+%alias uedit /usr/bin/open -a UltraEdit
+
+import matplotlib.pyplot as plt
+from IPython.display import display, Image
+
+# -------------------------------------------------------------- 

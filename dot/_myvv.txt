@@ -1,0 +1,60 @@
+
+# ~/.myvv - our specific bash functions
+# source this file from .bashrc
+
+# -------------------------------------------------
+path() {
+  echo "${PATH//:/$'\n'}" # show on separate lines
+}
+
+# -------------------------------------------------
+# ----- func show PYTHONPATH
+pypath() {
+  echo "${PYTHONPATH//:/$'\n'}" # show on separate lines
+}
+
+# -------------------------------------------------
+myinfo () {
+    echo "----------------------------------"
+    uname -a
+    lsb_release -a 2>/dev/null | grep Release
+
+    echo "----------------------------------"
+    free
+
+    echo "----------------------------------"
+    echo "CPUs: " $(lscpu | grep 'CPU(s):'|grep -v NUMA)
+
+    num=$(ps aux | wc -l)
+    num="$(($num-1))"
+    echo "Processes running: $num"
+
+    df -h | grep -Pv '/dev/loop|tmpfs|/boot/'
+    echo "----------------------------------"
+}
+
+# -------------------------------------------------
+# function to show start time and run time of a processes
+# Examples of usage: 
+#    runtime
+#    runtime | grep python
+#    runtime my_pattern
+runtime(){
+    ps -eo user,pid,ppid,lstart,etime,args | head -1
+    if [ $# -eq 0 ]; then
+        ps -eo user,pid,ppid,lstart,etime,args --sort start_time | grep -v grep
+    else
+        ps -eo user,pid,ppid,lstart,etime,args --sort start_time | grep -v grep | grep --color=auto $1
+    fi
+}
+
+# -------------------------------------------------
+# function to show only our processes (excluding system and gunicorn processes)
+# It is helpful to identify long-running processes
+running(){
+    startdate=$(runtime | grep /sbin/init | awk '{printf "%s %s %2d", $4, $5, $6}');
+    ps -eo user,pid,ppid,lstart,etime,args --sort start_time | \
+    grep -Pv '^(root|systemd+|syslog|message+|daemon|www\-data|postfix)' | \
+    grep -v "$startdate" | \
+    grep -Pv 'main;main|gunicorn|grep|sshd|\-bash' | grep -v 'ps -eo'
+}

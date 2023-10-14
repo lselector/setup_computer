@@ -1,0 +1,10 @@
+# ---------------------------------------
+# in ctrl-R use ctrl-T for forward search
+"\C-t":forward-search-history
+
+# ---------------------------------------
+# make up/down arrows work as in iPython 
+# (search commands with same beginning)
+"\e[A": history-search-backward
+"\e[B": history-search-forward
+

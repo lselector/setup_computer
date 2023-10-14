@@ -1,0 +1,22 @@
+
+Toolbar:
+
+New
+Remote File Open
+Go to previous Position
+Go to Next Position
+Save
+Comment Add
+Comment Remove
+Wrap
+Column
+Hex
+Separator
+Set Font
+Increase Font Size
+Decrease Font Size
+ASCII Table
+Functions
+Trim Trailing Spaces
+Vertical
+

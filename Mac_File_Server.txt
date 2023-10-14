@@ -1,0 +1,49 @@
+Instructions on how to set up 
+your old Macbook laptop 
+as a file server
+=================================================
+Turn old macbook into file server:
+ - https://www.chriswrites.com/turn-old-mac-macbook-file-server/
+
+Apple menu > System preferences > Sharing
+
+  set "Computer name" field
+
+  check "File sharing" checkbox
+
+  In the "Shared folders" section, click the little + icon 
+  and then select all the folders you want to share
+  (entire drive or SD card or individual folder(s))
+
+Make sure your server doesnt fall asleep.
+  - System preferences > Energy Saver
+  - caffeinate
+
+=================================================
+How to Prevent a MacBook From Sleeping When Lid Is Closed
+ - https://www.lifewire.com/prevent-macbook-from-sleeping-when-lid-is-closed-5203069
+
+System Preferences > Battery > Energy Saver > Power Adapter
+  move the slider to Never
+
+Click the "Prevent computer from sleeping automatically when the display is off" check box.
+
+If you want to keep your MacBook from sleeping 
+without plugging in an external monitor, 
+you may need to install a third-party app
+from mac App Store:
+ - Insomniac
+ - Amphetamine
+ - Caffeinated
+
+=================================================
+To connect to this file server from other Macs:
+  it should appear on the left sidebar of Finder
+  Alternatively connect via Finder "Go" menu
+=================================================
+=================================================
+=================================================
+=================================================
+=================================================
+=================================================
+

@@ -1,0 +1,54 @@
+You can host a free non-commercial website on GitHub.
+Just one.
+
+It is easy to do.
+
+Suppose your GitHub account is "myaccount", 
+so that your repositories are here:
+    https://github.com/myaccount
+
+# ----------------------------------------------------
+First create a repository "myaccount.github.io"
+(be careful - it ends in "io", not "com").
+
+Next, put there your html pages. 
+For example, put there a simple file "index.html" :
+
+<html>
+Simple test
+</html>
+
+Then you can access it as a web site like this:
+
+    myaccount.github.io
+
+# ----------------------------------------------------
+Now suppose you want to use a custom domain "mydomain.com".
+
+You register this domain at Google domains.
+
+# ---------------------------
+Then you go to your accounts at domains.google.com
+and manage this domain like this:
+
+  you select to use Default name servers,
+
+  and then add 5 DNS records like this:
+
+Hostname          Type     TTL      Data
+mydomain.com       A      1 hour    185.199.108.153
+                                    185.199.109.153
+                                    185.199.110.153
+                                    185.199.111.153
+www.mydomain.com  CNAME   1 hour    myaccount.github.io
+
+# ---------------------------
+Finally in the GitHub repository "myaccount.github.io"
+you create a text file "CNAME" with two lines 
+
+mydomain.com
+www.mydomain.com
+
+This is it.
+Give it some time - and it should start working.
+# ---------------------------

@@ -1,0 +1,198 @@
+# --------------------------------------------------------------
+# install nginx web server
+https://mediatemple.net/community/products/developer/204405534/install-nginx-on-ubuntu
+https://ubuntu.com/tutorials/install-and-configure-nginx#2-installing-nginx
+https://ubuntu.com/tutorials/install-and-configure-nginx#3-creating-our-own-website
+
+sudo apt install nginx
+sudo /etc/init.d/nginx start
+
+test:
+   sudo nginx -t
+restart:
+   sudo /etc/init.d/nginx restart
+   or
+   sudo systemctl restart nginx
+
+cd /etc/nginx/
+
+# Try in browser:
+http://myserver1.westus2.cloudapp.azure.com/
+# ----------------------------------------------
+configuration file    :   /etc/nginx/nginx.conf
+log files             :   /var/log/nginx/
+sites definitions     :   /etc/nginx/sites-available/myserver1
+# --------------------------------------------------------------
+Add new site
+ - http://www.servermom.org/how-to-add-new-site-into-your-nginx-based-ubuntu-server/
+
+add default html page:
+
+sudo mkdir -p /var/www/myserver1.westus2.cloudapp.azure.com/htdocs
+sudo mkdir -p /var/www/myserver1.westus2.cloudapp.azure.com/logs
+sudo chmod 755 /var/www
+cd /var/www
+sudo chown -R azureuser:azureuser myserver1.westus2.cloudapp.azure.com/
+sudo chown -R azureuser:azureuser html
+cd myserver1.westus2.cloudapp.azure.com/htdocs/
+
+# create simple index.html file
+vi index.html
+chmod +x index.html
+
+# ----------------------------------------------
+cd /etc/nginx/sites-available/
+sudo cp default myserver1
+sudo vi myserver1
+
+server {
+            listen 80;
+            listen [::]:80;
+
+            server_name myserver1.westus2.cloudapp.azure.com;
+
+            root      /var/www/myserver1.westus2.cloudapp.azure.com/htdocs/ ;
+            index index.html index.htm index.nginx-debian.html ;
+
+}
+
+# ----------------------------------------------
+restart the server - you should be able to see a simple website using http (no https yet)
+# ----------------------------------------------
+# ----------------------------------------------
+configure ssh certificate
+
+https://letsencrypt.org/
+https://letsencrypt.org/getting-started/
+https://certbot.eff.org/
+https://certbot.eff.org/instructions
+
+sudo apt update
+sudo apt-get install certbot python3-certbot-nginx  --fix-missing
+sudo certbot --nginx
+     note: it found the domain - and offered to generate and install for it.
+     note: it asked for email - I entered mine
+
+Once this worked - I edited the config (now it has the port 443) as following and restarted nginx:
+
+server {
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate     /etc/letsencrypt/live/myserver1.westus2.cloudapp.azure.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/myserver1.westus2.cloudapp.azure.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+         server_name myserver1.westus2.cloudapp.azure.com ;
+         root      /var/www/myserver1.westus2.cloudapp.azure.com/htdocs/ ;
+         index index.html index.htm index.nginx-debian.html ;
+
+         access_log  /var/www/myserver1.westus2.cloudapp.azure.com/logs/access.log ;
+         error_log   /var/www/myserver1.westus2.cloudapp.azure.com/logs/error.log ;
+
+         location /prod {
+             proxy_pass http://127.0.0.1:8000;
+             proxy_set_header Host $host;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             proxy_read_timeout 240s;
+         }
+
+         location /test {
+             proxy_pass http://127.0.0.1:8010;
+             proxy_set_header Host $host;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             proxy_read_timeout 240s;
+         }
+ }
+
+server {
+            listen 80;
+            listen [::]:80;
+
+            server_name myserver1.westus2.cloudapp.azure.com;
+
+#         root      /var/www/myserver1.westus2.cloudapp.azure.com/htdocs/ ;
+#         index index.html index.htm index.nginx-debian.html ;
+
+         return 301 https://$server_name$request_uri;
+
+}
+
+# ----------------------------------------------
+# check for automatic renewal:
+
+sudo certbot renew --dry-run
+
+Note:
+renewal is scheduled in this file:
+
+     /etc/cron.d/certbot
+
+as following command:
+
+0 */12 * * * root test -x /usr/bin/certbot -a \! -d /run/systemd/system && perl -e 'sleep int(rand(43200))' && certbot -q renew
+
+Note that the 6th element in this command is the user name (root). 
+This syntax of files in /etc/cron.d/ directory is a bit different 
+from regular user crontab files.
+# ----------------------------------------------
+configure jupyter access
+
+https://jupyter-notebook.readthedocs.io/en/stable/public_server.html
+
+sudo chmod -R 755 /etc/letsencrypt/live
+sudo chmod -R 755 /etc/letsencrypt/archive
+sudo chmod 644 /etc/letsencrypt/archive/myserver1.westus2.cloudapp.azure.com/*.pem
+
+jupyter notebook --generate-config
+# Writing default config to: /home/azureuser/.jupyter/jupyter_notebook_config.py
+
+jupyter notebook password
+Enter password:  ****
+Verify password: ****
+[NotebookPasswordApp] Wrote hashed password to /home/azureuser/.jupyter/jupyter_notebook_config.json
+
+vi ~/.jupyter/jupyter_notebook_config.py
+
+c.NotebookApp.certfile = '/etc/letsencrypt/live/myserver1.westus2.cloudapp.azure.com/fullchain.pem'
+c.NotebookApp.keyfile  = '/etc/letsencrypt/live/myserver1.westus2.cloudapp.azure.com/privkey.pem'
+
+# Set ip to '*' to bind on all interfaces (ips) for the public server
+c.NotebookApp.ip = '*'
+c.NotebookApp.open_browser = False
+c.NotebookApp.iopub_data_rate_limit = 10000000000
+
+c.NotebookApp.port = 8888
+# --------------------------------------------------------------
+
+In Azure browser interface for the VM go to network inbound rules and add a rule to open ports 8888-8898
+
+Then in the browser go to:
+     https://myserver1.westus2.cloudapp.azure.com:8888/
+
+Enter the password - and you should be in.
+# --------------------------------------------------------------
+To set up subdomains with HTTPS certificates we follow these instructions:
+
+https://adamtheautomator.com/nginx-subdomain/
+
+we stopped where we need to add sections for https and add certificates:
+
+/etc/letsencrypt/live/ipython.johnsmith.com/fullchain.pem
+/etc/letsencrypt/live/ipython.johnsmith.com/privkey.pem
+
+/etc/letsencrypt/live/r.johnsmith.com/fullchain.pem
+/etc/letsencrypt/live/r.johnsmith.com/privkey.pem 
+
+To map ports for ipython and R we need to do something like this in
+corresponding config file fo ipython (which uses port 8888) 
+and similar for 'r' which uses port 8787:
+
+         location / {
+             proxy_pass http://127.0.0.1:8888;
+             proxy_set_header Host $host;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             proxy_read_timeout 240s;
+         }
+
+

@@ -1,0 +1,136 @@
+Instructions for using Google Drive on Lev's Mac
+Updated October 27, 2022
+
+Install and start Google Drive app
+
+I use two Google drives: personal and business
+
+Then I create $HOME/docs and $HOME/docs_bb symbolic links as following:
+
+cd $HOME
+ln -s "$HOME/Library/CloudStorage/GoogleDrive-lev.selector@gmail.com/My Drive" docs
+ln -s "$HOME/Library/CloudStorage/GoogleDrive-lev@bixbeta.com" docs_bb
+
+When Google Drive works - it shows an icon in top menu.
+Click on it, click on Gear icon, Select Preferences.
+A Preferences window will open up.
+On The left it will show two choices:
+    My MacBook Pro (Folders from your computer)
+    Google Drive   (Folders from Drive)
+
+Select Google Drive option.
+
+On the left it will show two options: Stream Files and Mirror Files.
+Click on "Mirror files" to keep files in both places
+   (on the internet and on local drive)
+
+Click on settings (gear icon on the top right of this window).
+Here you can configure both accounts (personal and BixBeta).
+
+=============================================
+Personal
+checkbox checked - See if someone else is editing a shared MS Office files
+Google Drive Streaming location - controlled by macOS
+checkbox checked - Show Google Drive in Locations in Finder
+Google Photos:
+  selected - Storage Saver (or original quality)
+  not selected - Upload photyos and videos to Google Photos  
+  File types: checkbox checked -  upload screenshots
+            checkbox checked   - upload RAW files
+=============================================
+Business (BixBeta)
+similar to Personal, but it doesn't let me do "Mirror Files"
+(it returns to Stream Files)
+...
+=============================================
+checkbox checked - Launch Google Drive on system startup
+Proxy settings - auto-detect
+Bandwidth settings - nothing selected
+Configure hotkey: checkbox checked Search cmd-option-G
+Notifications:  checkbox checked "Prompt me to back up devices"
+
+=============================================
+See more details here (may be obsolete - 2020):
+
+https://support.google.com/drive/thread/41249686/google-back-up-and-sync-two-computers-with-the-same-data-back-up-on-google-drive
+
+https://support.google.com/drive/answer/10838124?p=driveprefs&visit_id=637801365497329036-1424864105&rd=1#
+
+=============================================
+Resolving problems with sync-ing:
+
+https://www.switchingtomac.com/tutorials/osx/how-to-fix-google-drive-not-syncing-on-mac/
+
+.. Pause & Restart The Sync
+.. Quit The App & Reopen It
+.. Log Out Of The App & Log Back In
+.. Reboot Your Mac
+.. Turn Off The Firewall On Your Mac
+.. Checkmark The Folders That You Want To Sync
+.. Ensure The App Opens At Login For Automatic Sync
+.. Run The Script Bundled With “Backup and Sync”
+.. Disable The Proxy Connection
+.. Reinstall The “Backup and Sync” App
+
+=============================================
+Green Checkboxes and cloud download icons in Finder
+
+If you see a cloud download icon next to a file or directory,
+this means that the files were not downloaded.
+
+Files with extensions gdoc, gsheet, gslides 
+live only in the clowd. They can not be synced.
+So there is no green checkboxfor them.
+
+For other files they may be synced to local drive.
+You need to right-click on directory - and choose "Available offline".
+
+You will see green check-marks appearing to indicate
+that the files or folders were synced.
+
+If there are problems - click on the drive icon on 
+the top ment and check if the application is busy.
+It may be slow (depends on internet speed).
+It may get stuck, and you may need to close it,
+and then reopen. Give it some time to fix itself.
+
+On some directories the white cloud download icon may still persist.
+This may be caused by the drive being busy sinking.
+You may need to give it some time, and then in Finder leave the 
+directory - and return into it.
+
+This may be also caused by some sync problem in subfolders. 
+You will have to go deep manually in Finder 
+and sync piece by piece until you will locate the offending file.
+
+Sometimes green check-marks are missing - and the files 
+were indeed NOT downloaded. So in terminal you can see 
+their sizes as zero. And when you do right-click 
+in Finder - and choose "Available offline", 
+they will get downloaded.
+
+Sometimes green check-marks are missing - but the
+file is actually synced OK. You may still make the green 
+mark appear by right-click - "Available offline"
+
+When you do this "offline" operation on a folder, 
+it may travel into the folder, or not. 
+So sometimes you will need to enter this folder,
+and repeat the "Available offline" from inside the folder.
+etc. etc.
+
+Sometimes you see the green marks - and then they suddenly 
+vanish without any reason. So you may need to wait and then
+leave the directory - and return. They may re-appear.
+You may need to repeat the "Available offline" action.
+
+Check settings in System Preferences > Extensions
+  for Finder and Google Drive
+=============================================
+It is NOT recommended for two people to open 
+the same document like MS Word or PPT at the same
+time, because it takes time to sync,
+so person A and person B may have different versions.
+And what will be saved depends on the order of saving 
+and syncing.
+=============================================

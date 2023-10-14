@@ -1,0 +1,38 @@
+# ----------------------------------------------
+January 2023 - setting up Linux on DELL XPS laptop.
+
+We decided to install Linux Mint:
+
+https://linuxmint.com/
+
+From this page you can follow download and installation istructions.
+
+# ----------------------------------------------
+First click on "Download" - and select the Cinnamon Edition,
+click on download:
+  .. https://linuxmint.com/edition.php?id=302
+and select the mirror site to start downloading the ISO file
+(approx 2.5 GBytes)
+
+# ----------------------------------------------
+Click on installation instructions - and get here:
+  .. https://linuxmint-installation-guide.readthedocs.io/en/latest/
+
+Linux Mint 21 is based on Ubuntu 22.04 LTS.
+We need:
+ .. USB 8GB or larger
+ .. format it as FAT32
+ .. balena Etcher - open source software to write 
+    the Linux Mint 21 ISO file to the USB stick
+
+  .. https://www.balena.io/etcher/
+  .. https://github.com/balena-io/etcher
+
+# ----------------------------------------------
+Once you have the bootable USB:
+  .. Start the laptop while pressing F2 to get into BIOS
+  .. Change the boot order to make USB first (on top)
+  .. Restart the laptop with USB inserted
+     and follow prompts to install Linux
+
+# ----------------------------------------------

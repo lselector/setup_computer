@@ -1,0 +1,26 @@
+[user]
+    name = Last, First
+    email = flast@somecompany.com
+[core]
+    excludesfile = ~/.gitexcludes
+[color]
+    ui = auto
+[alias]
+    st = status
+    ci = commit
+    co = checkout
+    staged = diff --cached
+    unstage = reset HEAD --
+    amend = commit --amend
+    unci = reset --soft HEAD^
+    oneline = log --oneline
+    unstaged = diff
+    both = diff HEAD
+    lg = log --graph --pretty=oneline --abbrev-commit --decorate
+    wdiff = diff --word-diff
+[log]
+    decorate = short
+[push]
+    default = tracking
+[branch]
+    autosetuprebase = always

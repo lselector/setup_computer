@@ -1,0 +1,40 @@
+# Crontab Scheduling:
+#   each scheduled instance is simply 1 line with 6 fields
+#   separated by one or more spaces:
+#   Minutes  Hours  Days  Months  Weekdays  Commands
+# Note:
+#   leading and trailing spaces of all lines are ignored
+#   empty lines are ignored
+#   lines starting with # or with spaces followed by # are comments
+#   spaces between fields may be one or several spaces
+#   you can provide one or several comma-separated values every field
+#   (so you can run several command at several time/dates, and run more than one command)
+# Specific fields:
+#   Minutes - Minutes after the hour (0-59).
+#   Hours - 24-hour format (0-23).
+#   Days - Day of the month (1-31).
+#   Months - Month of the year (1-12).
+#   Weekdays - Day of the week. (0-6; the 0 refers to Sunday).
+#   Command - runs in /bin/sh with very primitive ENV settings.
+#             it is better to set up environment like this:
+#             bash -c 'cd somedir; source env.sh; run_command'
+# Examples:
+#   0 0 * * *   - midnight every day
+#   0 13 * * 1-5  - 1 pm every working day
+#   0 3 1,15 * *  - run at 3 am on 1st and 15th of every month
+#   */5 * * * * - run every 5 min
+#
+#   * * * * * date>/tmp/lev1, date>/tmp/lev2  - run two commands on 1 line (every minute)
+#   * * * * * bash -c 'env  > /tmp/lev_crontab_test_env.txt'   - to show environment (every minute)
+#
+# to load crontab from file:    crontab somefile
+# to write crontab into a file: crontab -l > somefile
+# ---------------------------------------------------------------
+# tests (uncomment if needed)
+# * * * * * bash -c 'date    > /tmp/lev_crontab_test_date.txt'
+# * * * * * bash -c 'env     > /tmp/lev_crontab_test_env.txt'
+# * * * * * bash -c 'who -b  > /tmp/lev_crontab_test_who.txt'
+# ---------------------------------------------------------------
+# run internet speed test every 10 min
+# */10 * * * * bash -c 'cd ~/; source .bashrc; cd ~/docs/internet_speed_test; python speedtest_log.py >> speedtest.err 2>&1'
+

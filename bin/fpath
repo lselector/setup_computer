@@ -1,0 +1,160 @@
+#!/usr/bin/perl
+
+# ---------------------------------------------------------------
+# fpath - follows links and shows full paths and file type
+#         requires 1 argument (file or dir - absolute or relative)
+# with "-s" option only shows full path
+# useful alias:  alias apath='fpath -s '
+# ---------------------------------------------------------------
+
+use strict;
+
+my $short_output = 0;
+
+if (@ARGV) {
+  my @args = @ARGV; 
+  @ARGV = ();
+  for my $arg (@args) {
+    usage() if ($arg =~ m/^\-h/i); # this will exit;
+    if ($arg =~ m/^\-s/i) {
+      $short_output = 1;
+    } else {
+      push @ARGV,$arg;
+    }
+  }
+
+  for my $path (@ARGV) {
+    myprocess($path);
+  }
+} else {
+  while (my $path = <>) {
+    myprocess($path);
+  }
+}
+
+exit();
+# ###############################################################
+# End of the main part
+# ###############################################################
+
+sub say { print @_,"\n"; }
+
+sub sep { say "------------------------------------------"; }
+
+# ---------------------------------------------------------------
+# usage()
+# ---------------------------------------------------------------
+sub usage {
+  sep();
+  say "Script follows links and shows full paths and file type.";
+  say "Requires 1 or more arguments: dir(s) or path(s), absolute or relative.";
+  say "Can receive arguments via pipe";
+  say "Examples of Usage:";
+  say "  fpath -h           - show this help ";
+  say "  fpath -s something - show only full path, doesn't follow the link";
+  say "  fpath ../something";
+  say "  fpath /usr/local/bin/perl*";
+  say "  ls /a/ibase/bin/*treas_file* | fpath";
+  sep();
+  exit;
+}
+
+# ---------------------------------------------------------------
+# myprocess()
+# ---------------------------------------------------------------
+sub myprocess {
+  my $path = $_[0];
+  chomp $path;
+  if (! -e $path) { say "path $path doesn't exist, exiting"; usage(); }
+  $path = my_abs_path($path);
+  if ($short_output) {
+    say $path;
+    return;
+  }
+
+  sep();
+  while (-l $path) {
+    say "link  $path";
+    $path = resolve_abs_link($path);
+  }
+
+  if (-f $path) {
+    say "file  $path";
+  } elsif (-d $path) {
+    say "dir   $path";
+  } else {
+    say "???   $path";
+  }
+
+  my $txt;
+  $txt = qx{file $path};          chomp $txt; say $txt;
+  $txt = qx{/bin/ls -alFd $path}; chomp $txt; say $txt;
+  say;
+}
+
+# ---------------------------------------------------------------
+# mypwd() - returns current dir as bash sees it 
+# ---------------------------------------------------------------
+sub mypwd {
+  my $txt = qx{bash -c 'pwd'};
+  chomp $txt;
+  return $txt;
+}
+
+# ---------------------------------------------------------------
+# simplify_abs_path($path) - takes abs. path which starts with "/"
+#   resolves things like   /dir1/../dir2
+#   returns cleaned abs. path
+# ---------------------------------------------------------------
+sub simplify_abs_path {
+  my $path = $_[0];
+  $path =~ s{^\s+|\s+$}{}g; # trim
+  $path =~ s{^/+|/+$}{}g;   # remove leading and trailing slashes
+  $path =~ s{/{2,}}{/}g;     # remove duplicate slashes
+  my @ar1 = split(/\//,$path);
+  my @ar2 = ();
+  for my $dir (@ar1) {
+    if ($dir ne '..') {
+      push @ar2, $dir;
+    } else {
+      die" wrong path $_[0]" if (! scalar(@ar2));
+      pop @ar2;
+    }
+  }
+  my $newpath = "/" . join("/",@ar2);
+  if (! -e $newpath) { die"error simplifying path\nfrom $_[0]\nto $newpath\n"; }
+  return $newpath;
+}
+
+# ---------------------------------------------------------------
+# my_abs_path($path,$absdir)
+#   returns abs_path (dir or file)
+#   $absdir is optional. If $absdir is provided and $path
+#   is not absolute - then they are combined
+# ---------------------------------------------------------------
+sub my_abs_path {
+  my $path = $_[0];
+  my $dir;
+  if(@_>=2) { $dir = $_[1]; } else {$dir = mypwd(); }
+  $path =~ s{^\s+|\s+$}{}g; # trim
+  $path =~ s{/+$}{}g; # remove trailing slashes if any
+  if ($path !~ m{^/}) {
+    $path =~ s{^\./}{}; # remove ./ at the beginning if any
+    $path = $dir ."/" . $path;
+  }
+  return simplify_abs_path($path);
+}
+
+# ---------------------------------------------------------------
+# resolve_abs_link($abs_link) - returns abs path after 1-step of resolving 
+# ---------------------------------------------------------------
+sub resolve_abs_link {
+  my $entry = $_[0];
+  my $res = readlink($entry);
+  $entry =~ s{/[^/]+$}{}; # take abs basename
+  $entry = "/" if not length($entry);
+  return my_abs_path($res, $entry);
+}
+
+__END__
+

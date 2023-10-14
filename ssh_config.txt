@@ -1,0 +1,38 @@
+
+# -----------------------------------------------------
+# create empty file $HOME/.ssh/config
+# and put the following text into into into it 
+#
+# customize as needed
+# 
+# permissions should be 
+#   700 (drwx------) for: 
+#     .ssh/
+#     .ssh/config
+#     .ssh/myserver/
+#   644 (-rw-r--r--) for public keys
+#   600 (-rw-------) for private keys
+# 
+# -----------------------------------------------------
+# For github the Host should be "github.com"
+Host github.com
+  User my_github_user
+  HostName github.com 
+  IdentityFile /Users/myuser/.ssh/mygithub/id_ed25519_github
+  IdentitiesOnly yes
+
+# -----------------------------------------------------
+Host aws1
+  User ubuntu
+  HostName someserver.us-west-2.compute.amazonaws.com
+  IdentityFile /Users/myuser/.ssh/aws1/aws1.pem
+
+# -----------------------------------------------------
+# etc
+# etc
+
+# -----------------------------------------------------
+Host *
+  AddKeysToAgent yes
+  ServerAliveInterval 30
+

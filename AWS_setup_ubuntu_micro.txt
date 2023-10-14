@@ -1,0 +1,354 @@
+# --------------------------------------------------------------
+2020
+Setting up EC2 Ubuntu 18.04 Linux server on AWS (Amazon Web Services)
+# --------------------------------------------------------------
+
+Go to Amazon Web Services website and create an account:
+
+    https://aws.amazon.com
+
+Then create a new free micro EC2 instance (Ubuntu 18.04)
+It will ask you to Enter the name of the key - and will 
+allow you to generate and download 
+the private key file with extension .pem, for example:
+   lev01.pem
+
+On your side in terminal window put it like this:
+   ~/.ssh/lev01.pem
+chmod 400 ev01.pem
+
+# --------------------------------------------------------------
+Then in browser in EC2 management console edit corresponding
+security group to have two rules like this:
+Type                Protocol     Port Range   Source
+Custom TCP Rule      TCP            0-100      Anywhere (0.0.0.0/0)
+Custom ICMP Rule     Echo Request   N/A        Anywhere (0.0.0.0/0)
+
+Also copy the external public IP of the instance, for example 54.123.123.123
+
+In terminal on your side try this:
+
+ssh -i ~/.ssh/lev01.pem  ubuntu@54.123.123.123
+
+Ideally this will login you into the instance.
+If not - google how to troubleshoot.
+
+create alias:
+alias aws1='ssh -i ~/.ssh/lev01.pem  ubuntu@54.123.123.123'
+
+# ---------------------------------------------------------------
+# check that you have swap space.
+
+free # shows Memory and Swap
+swapon -s  # shows swap in KBytes
+top
+vmstat
+cat /proc/swaps
+
+# If you need to add extra swap space
+# and put it here: /data1/myswap:
+
+sudo su -
+cd /data1
+
+# if file myswap pre-existed and swap was on - remove it first
+swapoff -a
+rm -rf /data1/myswap
+
+# now create a swap file "myswap", and turn on swapping
+fallocate -l 64G myswap
+chown root:root myswap
+chmod 0600 myswap
+mkswap /data1/myswap  # this command gives UUID
+swapon /data1/myswap
+
+# To make it enable on system boot, simply edit /etc/fstab file :
+
+cp /etc/fstab /etc/fstab.orig2
+vi /etc/fstab
+
+# and add following entry at end of file.
+
+/data1/myswap                            swap         swap    defaults        0 0
+
+# ---------------------------------------------------------------
+Below are software installation instructions.
+You do it when you configure the box first time.
+You don't need to do it when you created instanceform an image
+  where all software was already installed.
+You may need to do parts of this when you do software upgrades.
+# ---------------------------------------------------------------
+Once in the EC2 instance on the prompt, check if you have
+the following - and install as needed (google for instructions):
+
+  wget, gcc, bzip2, zip, 
+  dos2unix, coreutils, mailx,
+  htop
+
+Note: The installation is simple, for example:
+  sudo apt update
+  sudo apt upgrade
+  which htop
+  sudo apt install htop
+
+Note: APT is acronym for Advanced Package Tool (installing via ftp or http).
+      "apt" is a convenient wrapper around apt-get, apt-cache, etc. 
+      # https://itsfoss.com/apt-vs-apt-get-difference/
+      Since 2016 you can do: 
+        sudo apt install htop
+      instead of
+        sudo apt-get install htop
+
+Note: 
+  If you want to automate installations using a script, you
+  may want to add "-y" option to automatically answer "Yes"
+  to prompts, for example:
+    sudo apt install -y nginx
+    sudo apt-get install -y nginx
+
+Note: in some cases you will be instructed to use "dpkg" command:
+   sudo dpkg -i somepackage.deb
+
+# ---------------------------------------------------------------
+Install fd-find:
+
+cd /data/SOFT
+wget https://github.com/sharkdp/fd/releases/download/v7.3.0/fd_7.3.0_amd64.deb
+sudo dpkg -i fd_7.3.0_amd64.deb
+which fd
+cd
+fd sql
+# ----------------------------------------------
+Install ripgrep
+
+https://github.com/BurntSushi/ripgrep
+
+cd /data/SOFT
+curl -LO https://github.com/BurntSushi/ripgrep/releases/download/11.0.1/ripgrep_11.0.1_amd64.deb
+sudo dpkg -i ripgrep_11.0.1_amd64.deb
+
+# ---------------------------------------------------------------
+Install anaconda (or miniconda) python
+Google for 
+   anaconda download
+       https://www.anaconda.com/distribution/
+   miniconda download
+       https://docs.conda.io/en/latest/miniconda.html
+
+Get a link from anaconda website, for example:
+   https://repo.anaconda.com/archive/Anaconda3-2019.10-Linux-x86_64.sh
+   https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+
+Download the installer script like this:
+     curl -O https://repo.....sh
+  or
+     wget    https://repo.....sh
+
+Do the installation into your home directory, 
+for example:
+   bash Miniconda3-latest-Linux-x86_64.sh
+
+# ---------------------------------------
+relogin - and check python:
+which python
+which ipython
+conda update conda
+conda update anaconda
+
+conda config --set auto_activate_base false
+conda install gunicorn
+  # https://www.airpair.com/python/posts/python-servers
+  # https://gunicorn.org/
+
+conda install -c anaconda requests
+pip install requests[socks]
+pip install PySocks
+
+ipython profile create
+
+# ----------------------------------------------
+
+Configure ipython
+
+ipython locate profile
+ipython profile create
+ipython locate profile
+
+add files under .ipython/profile_default/startup/
+   (take them from python_setup repository)
+
+cd /data/anaconda3/
+find ./ -name 'ipython_config.py' -ls
+cp     some_dir/ipython_config.py     ~/.ipython/profile_default/ipython_config.py
+edit file :
+    .ipython/profile_default/ipython_config.py
+
+search and set:
+  c.TerminalInteractiveShell.display_completions = 'readlinelike'
+  c.InteractiveShell.ast_node_interactivity = 'all'
+
+# ----------------------------------------------
+install nginx web server
+  https://mediatemple.net/community/products/developer/204405534/install-nginx-on-ubuntu
+   
+   sudo apt-get install nginx
+   sudo /etc/init.d/nginx start
+
+test:
+   sudo nginx -t
+restart:
+   sudo /etc/init.d/nginx restart
+   or
+   sudo systemctl restart nginx
+# ----------------------------------------------
+# ----------------------------------------------
+Configure nginx & gunicorn
+
+Configuration and (re)starting of nginx and gunicorn 
+is described in a separate file
+
+script to start gunicorn on reboot:
+
+    /etc/init.d/gnu_unicorn
+# ----------------------------------------------
+SSH Certificate should be provisioned using "Let's Encrypt"
+
+    https://letsencrypt.org/
+
+Following instructions here:
+ - https://certbot.eff.org/lets-encrypt/ubuntubionic-nginx
+
+Add Certbot PPA
+
+sudo apt-get update
+sudo apt-get install software-properties-common
+sudo add-apt-repository universe
+sudo add-apt-repository ppa:certbot/certbot
+sudo apt-get update
+
+Install Certbot
+
+sudo apt-get install certbot python-certbot-nginx
+sudo certbot --nginx
+sudo certbot renew --dry-run
+
+IMPORTANT NOTES:
+ - Congratulations! Your certificate and chain have been saved at:
+   /etc/letsencrypt/live/myvm1.eastus.cloudapp.azure.com/fullchain.pem
+   Your key file has been saved at:
+   /etc/letsencrypt/live/myvm1.eastus.cloudapp.azure.com/privkey.pem
+   Your cert will expire on 2019-09-17. To obtain a new or tweaked
+   version of this certificate in the future, simply run certbot again
+   with the "certonly" option. To non-interactively renew *all* of
+   your certificates, run "certbot renew"
+ - If you like Certbot, please consider supporting our work by:
+
+Note:
+renewal is scheduled in this file:
+
+     /etc/cron.d/certbot
+
+as following command:
+
+0 */12 * * * root test -x /usr/bin/certbot -a \! -d /run/systemd/system && perl -e 'sleep int(rand(43200))' && certbot -q renew
+
+Note that the 6th element in this command is the user name (root). This syntax of files in /etc/cron.d/ directory is a bit different from regular user crontab files.
+
+# ----------------------------------------------
+# ---------------------------
+mkdir ~/myproj
+mkdir ~/myproj/py_lib
+mkdir ~/myproj/py_lib/examples
+mkdir ~/myproj/py_lib/examples/tt_scrape
+
+# --------------------------------------
+export scpath="myproj/py_lib/examples/tt_scrape"
+export diraws="/home/ec2-user/$scpath"
+export dirloc="$HOME/$scpath"
+
+export aws1ip='54.123.123.123'
+export aws2ip='54.123.123.123'
+export aws3ip='35.123.123.123'
+
+alias sc='cd ~/myproj/py_lib/examples/tt_scrape'
+alias aws1="ssh -i $HOME/.ssh/lev01.pem  ec2-user@$aws1ip"
+alias aws2="ssh -i $HOME/.ssh/lev01.pem  ec2-user@$aws2ip"
+alias aws3="ssh -i $HOME/.ssh/lev03.pem  ec2-user@$aws3ip"
+
+export scp1="scp -i $HOME/.ssh/lev01.pem"
+export scp21="ec2-user@$aws1ip"
+export scp22="ec2-user@$aws2ip"
+export scp23="ec2-user@$aws3ip"
+# --------------------------------------
+cd $dirloc
+$scp1  *.py         $scp2:$diraws/
+$scp1  proxies.txt  $scp2:$diraws/
+$scp1  -r test*     $scp2:$diraws/
+$scp1  -r files*    $scp2:$diraws/
+mydir=$HOME/.ipython/profile_default/startup
+$scp1   $mydir/*    $scp2:$mydir/
+mydir=$HOME/myproj/py_lib
+$scp1   $mydir/*.py $scp2:$mydir/
+
+# ---------------------------
+# Then fix .bashrc on aws:
+
+export PATH="/home/ec2-user/anaconda/bin:$PATH"
+export PS1='\u:\w > '
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONPATH=$(dirname $(which python3)):~/lib:~/myproj/py_lib
+alias sc='cd ~/myproj/py_lib/examples/tt_scrape'
+alias ii=ipython
+alias ltop='htop -u ec2-user'
+
+# --------------------------------------------------------------
+AWS Command Line Interface
+
+aws cli
+
+Download installer for your platform here:
+   http://docs.aws.amazon.com/cli/latest/userguide/installing.html
+
+For example, for unix or mac:
+   http://docs.aws.amazon.com/cli/latest/userguide/installing.html#install-bundle-other-os
+
+Download this file:
+  https://s3.amazonaws.com/aws-cli/awscli-bundle.zip
+unzip, you will get a directory "awscli-bundle"
+which contains the "install" python script and subdirectory "packages".
+In the terminal window (on unix prompt) go into this directory 
+and run the "install" python script.
+
+It will probably install "aws" python script here:
+   $HOME/.local/lib/aws/bin/aws
+Add this location to PATH:
+   export PATH=$PATH:$HOME/.local/lib/aws/bin
+
+Now this command should work:
+   aws help
+
+To execute aws commands you will need to connect to web interface.
+For this you need two keys:
+   AWS Access Key ID
+   AWS Secret Access Key
+
+Follow instructions here to get them
+  http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html
+
+Now run this command:
+  aws configure
+and enter the two keys, press enter for the other two questions.
+
+AWS Access Key ID:
+AWS Secret Access Key:
+Default region name [None]: 
+Default output format [None]:
+
+Now try this:
+  aws --region=us-west-2 ec2 describe-instances
+
+You should get a JSON output back.
+Note: to find which region to use, go in browser into
+instances management, select an instance - and see the details pande 
+at the bottom of the screen.
+# --------------------------------------------------------------

@@ -1,0 +1,273 @@
+Example of installation
+August 2022 - Linux Server in Azure
+Region: WestUS2
+Number of vCores : 4 (need 16)
+Memory           : 16 (need 64)
+OS: Ubuntu 20.04
+
+Storage volumes: 29GB and 1TB
+
+Public DNS: myserver1.westus2.cloudapp.azure.com 
+Public IP : 12.34.56.78 
+
+==================================================
+During the setup procedure I've chosen to create the private/public ssh keys.
+...
+
+==================================================
+I defined alias as:
+
+alias ipc 'ssh -i $HOME/.ssh/ipc/ipc-ml-vm-ssh-key.pem azureuser@12.34.56.78'
+
+and added the following entry into file .ssh/config   
+
+Host 12.34.56.78
+    HostName 12.34.56.78
+    IdentityFile /Users/myuser/.ssh/ipc/ipc-ml-vm-ssh-key.pem
+
+==================================================
+Next steps:
+  mount drive
+https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
+
+# run command
+lsblk
+
+found "sdc" device with 1TB size
+
+# create file system on the empty drive
+sudo mkfs -t xfs /dev/sdc
+
+# create mount point:
+sudo mkdir /data
+sudo mount /dev/sdc /data
+
+cd /data
+sudo chown azureuser:azureuser
+
+# modify /etc/fstab to automount the disk
+
+sudo cp /etc/fstab /etc/fstab.orig
+
+sudo blkid | grep sdc
+/dev/sdc: UUID="34f96ab6-b3cb-4989-83e1-df56cb384e23" TYPE="xfs"
+
+# add the following line to the /etc/fstab:
+
+# <file system>                             <mount point>   <type>  <options>        <dump>  <pass>
+UUID=34f96ab6-b3cb-4989-83e1-df56cb384e23    /data           xfs     defaults,nofail    0       2
+
+sudo vi /etc/fstab
+
+# test
+sudo umount /data
+df -h
+sudo mount -a
+df -h
+==================================================
+# remove welcome banner
+cd /etc/update-motd.d
+sudo chmod -x *
+sudo chmod +x 98-reboot-required
+==================================================
+# make sure we have latest Git
+which git
+git --version
+sudo apt-get update
+sudo apt-get install git
+git --version
+==================================================
+# clone Lev's repo to set up environment
+cd /data
+mkdir SOFT
+cd SOFT
+git clone https://github.com/lselector/setup_computer.git
+
+cd /data/SOFT/setup_computer/dot
+cp ./_* ~/
+cd
+mv _vimrc.txt .vimrc
+
+vi .profile
+vi _profile.txt
+rm .profile
+mv _profile.txt .profile
+
+vi _myvv.txt
+mv _myvv.txt .myvv
+
+vi _mygit.txt
+mv _mygit.txt .mygit
+
+mv _inputrc.txt .inputrc
+mv _gitexcludes.txt .gitexcludes
+mv _git-completion.bash .git-completion.bash
+
+vi _bash_profile.txt
+mv _bash_profile.txt .bash_profile
+
+mv _gitconfig.txt .gitconfig
+vi .gitconfig
+
+vi _bash_aliases.txt
+mv _bash_aliases.txt .bash_aliases
+
+vi _bashrc.txt
+vi _bashrc_fish.txt
+rm _bashrc_fish.txt
+mv _bashrc.txt .bashrc
+
+==================================================
+# Install fd-find:
+ 
+cd /data/SOFT
+wget https://github.com/sharkdp/fd/releases/download/v7.3.0/fd_7.3.0_amd64.deb
+sudo dpkg -i fd_7.3.0_amd64.deb
+which fd
+fd --help
+fd
+
+==================================================
+# install miniconda python - and some modules
+
+wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.12.0-Linux-x86_64.sh
+bash Miniconda3-py39_4.12.0-Linux-x86_64.sh
+
+# choose location /data/miniconda3
+# choose to initialize
+# check the .bashrc and other dot files for PATH and PYTHONPATH
+
+cd
+vi .bash_profile
+vi .profile
+vi .bashrc
+exit
+which python
+which pip
+which ipython
+path
+
+# install additional modules
+cd /data/SOFT/setup_computer/
+pip install -r miniconda3_requirements.txt
+
+# check if directory $HOME/.ipython exists. If not - create it:
+ipython profile create
+
+# copy Lev's common startup modules under .ipython:
+cd ~/.ipython/profile_default/startup
+cp /data/SOFT/setup_computer/ipython_startup/*py   ./
+
+# find ipython_config.py - and copy it under .ipython
+
+cd /data/miniconda3
+fd ipython_config.py
+
+cp lib/python3.9/site-packages/jupyter_core/tests/dotipython/profile_default/ipython_config.py ~/.ipython/profile_default
+
+cd ~/.ipython/profile_default
+
+vi ipython_config.py 
+
+# add two lines
+
+c.TerminalInteractiveShell.display_completions = 'readlinelike'
+c.InteractiveShell.ast_node_interactivity = 'all'
+
+==================================================
+# Create a 'swap-file';  16G in this case
+sudo fallocate -l 16G /data/swapfile 
+sudo chmod 600 /data/swapfile        
+ls -lh /data/swapfile                
+sudo mkswap /data/swapfile           
+sudo swapon /data/swapfile           
+ 
+# Several ways to check:
+sudo swapon --show
+free -h
+htop
+grep Swap /proc/meminfo
+swapon -s
+cat /proc/swaps
+
+# Edit file /etc/fstab - add this line:
+  /data/swapfile   none   swap   sw   0   0
+
+# Note:
+#   Use (multiple) spaces to separate fields on line
+#   Use "sudo" to edit the file
+#   Before editing - make a backup copy of the file
+# 
+# sudo reboot # check swap after reboot
+
+==================================================
+Added directories under /data:
+
+/data/code
+/data/code/py_lib
+/data/code/bin
+/data/code/misc - for maintenance scripts
+/data/code/misc/SAVED
+
+/data/BACKUPS
+
+/data/log
+/data/log_old
+/data/log_test
+/data/log_test_old
+
+==================================================
+Added maintenance backup scripts under "/data/code/misc"
+and scheduled them in crontab
+==================================================
+==================================================
+==================================================
+==================================================
+==================================================
+create $HOME/.bashrc_crontab file
+schedule some basic jobs in crontab - and check that they are workign OK
+==================================================
+set up git commands like gist, gd, gistall, gg
+==================================================
+
+XXXXXXXXXXXXXXXXXXXX
+==================================================
+install nginx
+install secure certificates for nginx
+check that the default website works
+==================================================
+Jupyter config
+open ports 8888-8898 (in browser in Azure portal config for the VM)
+
+# ------------------------------------------------------------------
+# edit jupyter config files under $HOME/.jupyter
+
+$HOME/.jupyter/jupyter_notebook_config.py
+
+c.NotebookApp.certfile = '/etc/letsencrypt/live/name.west2us.cloudapp.azure.com/fullchain.pem'
+
+c.NotebookApp.iopub_data_rate_limit = 10000000000
+
+c.NotebookApp.keyfile = '/etc/letsencrypt/live/name.west2us.cloudapp.azure.com/privkey.pem'
+
+c.NotebookApp.open_browser = False
+
+# ------------------------------------------------------------------
+$HOME/.jupyter/jupyter_notebook_config.json
+
+{
+  "NotebookApp": {
+    "password": "sha1:some+long+password"
+  }
+
+}
+# ------------------------------------------------------------------
+
+added "vv" command which invokes /data/code/misc/myvv.py
+==================================================
+==================================================
+==================================================
+==================================================
+add Z-drive to share files between windows and Linux
+==================================================
+==================================================

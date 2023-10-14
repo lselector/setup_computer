@@ -1,0 +1,64 @@
+Git - Best Practicies
+By Lev Selector, August 2020
+
+Here are some docs for Git.
+ - https://git-scm.com/docs/user-manual.html
+
+Reminder:
+     do NOT use branches
+     do NOT use stash
+
+There are dot files:
+    .git-completion.bash
+    .git-credentials
+    .gitconfig
+    .gitexcludes
+    .mygit
+      which defines:
+         gitup
+         gd
+         gd2 (ignore diff in spaces)
+
+and script in "bin":
+    /data/ipc/bin/gist
+
+and in .bashrc I have added:
+# -------------------------------------------------
+if [ -f ~/.mygit ]; then
+    . ~/.mygit
+fi
+# -------------------------------------------------
+Here are the commands we used in June 2020 to set things up:
+
+git remote add origin link_to_repo.git
+git push -u origin master
+
+# -------------------------------------------------
+To use commands "gd" or "gd2", you need to know how to use vimdiff
+
+:qa  - quit both files without changes
+Ctrl W + w - switch to the other split window
+
+do - pull from other window
+dp - put to other window
+
+]c - jump to the next change.
+[c - jump to the previous change.
+
+zM or zR - Most or Reduce folding
+# -------------------------------------------------
+Most frequently used commands:
+
+gist
+gitup     (or git fetch, git pull)
+gd somefile
+gd log
+
+git add somefile   (or   git add .  )
+git ci -m'some comment'
+git push
+
+Also:
+git rm somefile
+git mv file1 fiel2
+

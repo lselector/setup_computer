@@ -1,0 +1,41 @@
+" -------------------------------------
+"Lev-s .vimrc file for Linux
+" -------------------------------------
+syntax on         " highlighting
+set nocompatible  " Use Vim defaults (even on Windows)
+set noautoindent  " so that when we copy/paste the code - it doesn't move diagonally
+set notitle       " to avoid vim renaming the title of the xterm window
+set nonumber      " Don't show line numbers - I have them in status line
+set ignorecase    " search case-insensitive (se ic, se noic)
+set smartcase     " overrides the 'ignorecase' if search pattern contains capital character(s)
+set incsearch     " search incremental
+set hlsearch      " search highlighting (se hls, se nohls)
+"set restorescreen " restore screen after you exit vim to what it was before you entered vim
+"set equalalways   " set size of windows equal when creating windows with :new, :split, :vsplit
+"set splitbelow    " open new window below the current one
+" -------------------------------------
+" use 4-space indentation
+set tabstop=4     " read :help tab for explanation of tabstop, softtabstop, shiftwidth
+set softtabstop=4 "
+set shiftwidth=4  "
+set expandtab     " inserts spaces instead of tab (for real tab use ctrl-V followed by tab)
+
+filetype plugin on
+set path=$PWD/**
+" set path+=**     " Search into subfolders, tab-completion
+set wildmenu     " Display all matching files when we tab complete
+
+" -------------------------------------
+" always show this custom status line
+set laststatus=2  " always show status line
+set statusline=%F%h%m%r%h%w%y\ %{&ff}\ ascii=\%03.3b\ hex=\%02.2B\ [%l,%v](%p%%\ of\ %L)(%o)\ %{strftime(\"%c\",getftime(expand(\"%:p\")))}%=\ 
+set showtabline=2 " always show tabs
+" -------------------------------------
+" colors for vimdiff
+if &diff
+  highlight DiffAdd    ctermfg=black ctermbg=green
+  highlight DiffDelete ctermfg=black ctermbg=grey
+  highlight DiffChange ctermfg=black ctermbg=yellow
+  highlight DiffText   ctermfg=black ctermbg=green
+endif
+" -------------------------------------

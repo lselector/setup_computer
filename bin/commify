@@ -1,0 +1,27 @@
+#! /usr/bin/env python
+
+# inserts commas into numbers in a text file
+# Usage: commify file1 file2
+#        cat filename | commify
+
+import os, sys, re
+
+# -------------------------------------
+def commify_all (fh):
+  while 1:
+    ss = fh.readline().rstrip()
+    if not ss:
+        break
+    ss = re.sub(r'[0-9](?=(?:[0-9]{3})+(?![0-9]))','\g<0>,',ss)
+    print(ss)
+
+# -------------------------------------
+# main execution
+# -------------------------------------
+if len (sys.argv) < 2:
+  commify_all(sys.stdin)
+else:
+  for fname in sys.argv[1:]:
+    f = open (fname, "r")
+    commify_all(f)
+    f.close ()

@@ -1,0 +1,82 @@
+Instructions to set up a VM (Virtual Machine)
+running Linux on your Mac.
+
+There are multiple options of how to run a Linux VM
+on your Mac (or Windows):
+  Oracle VirtualBox
+  KVM
+  Hyper-V
+  Docker containers
+  VMware
+
+Below are instructions for VirtualBox.
+
+=================================================
+install Oracle VirtualBox 
+  VirtualBox is a free VM.
+  Allows you to create and run multiple VMs 
+  running different operating systems
+  on the same computer at the same time
+  https://www.virtualbox.org/
+
+=================================================
+install vagrant
+  Vagrant is an open-source tool for simplifying creating VMs
+  https://www.vagrantup.com/downloads.html
+
+=================================================
+create a directory for your Linux project, 
+open it in terminal and run
+  vagrant init
+This will create a file "Vagrantfile"
+You need to configure it:
+  https://docs.vagrantup.com
+Every Vagrant development environment requires a box:
+  https://vagrantcloud.com/search.
+Here is an example of a simple Vagrantfile:
+
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "hashicorp/bionic64"
+  config.vm.define "my-fuzzer" do | node | 
+    node.vm.hostname = "fuzzer"
+    node.vm.network "private_network", ip: "192.168.2.2"
+    node.vm.provider "virtualbox" do | vb |
+      vb.name = "fuzzer"
+      vb.memory = "4096"  # Mb
+      vb.cpus = 1
+    end
+  end
+end
+
+=================================================
+Create a VirtualBox instance by running command:
+
+  vagrant up
+
+Now your Linux instance is live.
+You can close/open terminal, close/open computer.
+Restart computer.
+As soon as VirtualBox is started - your Linux instance(s)
+will be available again.
+
+=================================================
+Login into the linux box by going into your project 
+directory and running:
+
+  vagrant ssh
+
+=================================================
+The "vagrant" command has many subcommands, for example:
+  up
+  ssh
+  suspend
+  resume
+  reload
+  halt
+  destroy
+  ...
+  https://www.vagrantup.com/docs/
+=================================================
