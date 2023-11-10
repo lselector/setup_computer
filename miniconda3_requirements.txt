@@ -34,23 +34,33 @@
 notebook             # jupyter Notebook
 jupyterlab           # jupyter Lab
 ipywidgets           # browser widgets
+icalendar
 numpy
 pandas
-sklearn
+scikit-learn
 statsmodels
 
 xgboost
 hdbscan              # clustering
 
 matplotlib
-plotly
-dash
-seaborn
-plotnine
+# plotly
+# dash
+# seaborn
+# plotnine
 # -------------------------------------
 # shap        # ML feature analysis
-numba         # shap depends on numba
-shap
+# numba         # shap depends on numba
+# shap
+# -------------------------------------
+torch 
+torchvision 
+torchaudio
+bitsandbytes
+transformers
+peft
+datasets
+accelerate
 # -------------------------------------
 pytube        # download youtube videos
 # -------------------------------------
