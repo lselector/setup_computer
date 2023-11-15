@@ -41,6 +41,7 @@ scikit-learn
 statsmodels
 
 xgboost
+nltk
 hdbscan              # clustering
 
 matplotlib
@@ -56,6 +57,8 @@ matplotlib
 torch 
 torchvision 
 torchaudio
+torchtext
+spacy
 bitsandbytes
 transformers
 peft
