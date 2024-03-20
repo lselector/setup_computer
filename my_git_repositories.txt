@@ -7,11 +7,13 @@ eais-website
 golang_work
 interview_prep
 lselector.github.io
+management
 marketing
 misc_farm
 misc_life
 misc_tech
 ml_ai_doc
+mylab
 notebooks
 python_tutorials
 seminar
