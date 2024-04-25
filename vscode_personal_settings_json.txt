@@ -1,0 +1,40 @@
+{
+    "editor.minimap.enabled": false,
+    "security.workspace.trust.untrustedFiles": "open",
+    "python.defaultInterpreterPath": "/Users/levselector/miniconda3/bin/python",
+    "terminal.integrated.inheritEnv": false,
+    "editor.renderWhitespace": "all",
+    "workbench.startupEditor": "newUntitledFile",
+    "editor.rulers": [55,80],
+    "editor.wordWrap": "on",
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "workbench.iconTheme": "material-icon-theme",
+    "[plaintext]": {
+        "editor.unicodeHighlight.ambiguousCharacters": true,
+        "editor.unicodeHighlight.invisibleCharacters": true
+    },
+    "[markdown]": {
+        "editor.unicodeHighlight.ambiguousCharacters": true,
+        "editor.unicodeHighlight.invisibleCharacters": true
+    },
+    "editor.bracketPairColorization.enabled": true,
+    "editor.guides.bracketPairs": "active",
+    "editor.accessibilitySupport": "off",
+    "editor.unicodeHighlight.ambiguousCharacters": false,
+    "notebook.output.textLineLimit": 300,
+    "[python]": {
+        "editor.formatOnType": true
+    },
+    "files.autoSave": "afterDelay",
+    "svelte.enable-ts-plugin": true,
+    "workbench.colorTheme": "Default Light+",
+    "git.openRepositoryInParentFolders": "never",
+    "workbench.editor.empty.hint": "hidden",
+    "editor.quickSuggestions": {
+        "other": false
+      },
+      "editor.wordBasedSuggestions": "off" 
+}
+
