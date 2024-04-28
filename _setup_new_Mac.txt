@@ -162,6 +162,12 @@ brew install imagemagick
 brew install cask
 brew install youtube-dl
 brew search --casks
+# ----------------------------------------------
+Note: alternative to homebrew is macports
+Download the app from here: https://www.macports.org/
+Then in terminal use the "port" command:
+    sudo port install htop
+    sudo port install fd
 =====================================
 for fzf - add these lines to .bashrc
     export FZF_DEFAULT_COMMAND="fd . $HOME"
