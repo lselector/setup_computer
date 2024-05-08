@@ -13,7 +13,7 @@ Free software
   sudo ln -s '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code' /usr/local/bin/code
 .. Google Chrome - https://www.google.com/chrome/
 .. Firefox - https://www.mozilla.org/en-US/firefox/mac/
-.. LastPass - https://www.lastpass.com/
+.. Bitwarden - https://bitwarden.com/
 .. Spectacle - move and resize windows - https://www.spectacleapp.com/
 .. Battery Health (or paid version 2 or 3) from FIBLAB - show battery health 
    https://fiplab.com/apps/battery-health-3-for-mac
@@ -36,44 +36,17 @@ Commercial Software
 .. FreeSpace $0.99
    https://itunes.apple.com/us/app/freespace/id457520846?mt=12
 .. PDF Expert ~$75/year
+.. Bartender
+   https://www.macbartender.com
 ========================================================
-Commercial Software optional
-# BBEdit $49.99 https://www.barebones.com/store/download.html
-# UltraEdit for Mac $99.95 https://www.ultraedit.com/products/mac-text-editor/
-# DeltaWalker for Mac $59.95 (compare files / directores) https://www.deltawalker.com/
-# DaisyDisk $9.99 https://itunes.apple.com/us/app/daisydisk/id411643860?mt=12
-# Alfred - hotkeys - search, keywords, text expansion https://www.alfredapp.com/
-========================================================
+
 Free software - more
 .. Scroll Reverser - tune scrolling direction for mouse vs trackpad
    https://pilotmoon.com/scrollreverser/
 .. SeaMonkey - HTML Editor
    http://www.seamonkey-project.org/releases/
 =====================================
-# Recording part of the screen: Uberlayer or Overlay:
-#   https://github.com/jankeesvw/uberlayer
-#   https://apps.apple.com/hu/app/overlay/id653092846?mt=12
-# Pandoc - convert html to docx, etc. - https://pandoc.org/
-# FileZilla - FTP app - https://filezilla-project.org/download.php?platform=osx
-# WiFi Explorer Lite - https://itunes.apple.com/us/app/wifi-explorer-lite/id1408727408?mt=12
-=====================================
-# Oceanaudio - audio edit/convert - http://www.ocenaudio.com/
-# OpenShot Video Editor - https://www.openshot.org/
-# MediaHuman Audio Converter - https://www.mediahuman.com/audio-converter/
-# Tag Stripper (for audio) - https://www.markvapps.com/tagstripper
-=====================================
-Some other tools I like:
-  Ghost Reader Plus - convert text to Audio
-  GitHub Desktop
-  Splashtop Business - manage remote computers
-  Apple Store app "Draw on My Screen EZ"
-  Adobe Photoshop & Illustrator
-  MacX DVD Video Converter Pro Pack - convert video to video or audio
-  EpuborAudibleConverter - convert audio books into mp3
-  EPUB Converter.app - convert electronic books into txt or PDF
-  NordVPN IKE.app - VPN
-  PingPlotter.app - trace network problems
-=====================================
+
 Install Python
 
 I recommend either anaconda or miniconda
@@ -169,32 +142,6 @@ Then in terminal use the "port" command:
     sudo port install htop
     sudo port install fd
 =====================================
-for fzf - add these lines to .bashrc
-    export FZF_DEFAULT_COMMAND="fd . $HOME"
-    export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
-    export FZF_ALT_C_COMMAND="fd -t d . $HOME"
-=====================================
-bat - for light background add the following into .bashrc:
-
-  export BAT_THEME="OneHalfLight"
-=====================================
-exa - for light background add the folloing into .bashrc:
-
-  EXA_COLORS="uu=8;31:ex=8;31:sn=8;34:sb=8;34:di=10;32"
-  EXA_COLORS="$EXA_COLORS:ur=8;31:uw=8;31:ux=8;31:ue=8;31"
-  EXA_COLORS="$EXA_COLORS:gr=8;34:gw=8;34:gx=8;34:tr=8;31:tw=8;31:tx=8;31"
-  export EXA_COLORS
-
-also add the folloing into .bash_aliases
-
-  alias ee='exa -lF'
-  alias eee='exa -lFa'
-  alias ll='exa -lF'
-  alias lll='exa -lFa'
-=====================================
-Mactex (this is 3.42 GB in size) - to do formulas on Mac
-  https://tug.org/mactex/mactex-download.html
-=====================================
 After all software installed, configure:
   finder
   touchbar and mouse (Scroll Reverser)
@@ -204,36 +151,71 @@ After all software installed, configure:
   Apple scripts in Finder toolbar
   ipython startup files and config changes
 =====================================
-GitHub Desktop
 =====================================
-MySQL:
-  - install MySQL community edition from https://dev.mysql.com/downloads/mysql/ 
-  - install MySQL WorkBench community edition from https://dev.mysql.com/downloads/workbench/
 =====================================
-Some good software:
-https://www.youtube.com/watch?v=ROIMJ-M21gM&t=622s
-
-0:00 - start
-0:26 - Adguard - on app store, ad blocker
-2:23 - Alfred
-5:17 - ApolloOne - Photo Video Viewer Editor
-7:58 - PDFpen - adobe acrobat replacement
-9:20 - Setapp (including GoodTask) - $10/mo - https://setapp.com/
-10:54 - balenaEtcher
-11:37 - Elmedia Video Player (free)
-13:42 - Magnet $3 (similar to BetterSnapTool)
-14:55 - Notion - workflow / projects manager
-19:21 - Qobuz - music streamer
-21:00 - iStat Menus - cpu, disk, etc.
-21:49 - Sensei - optimize, uninstall, clean, etc.
-      - AppCleaner (free)
-24:00 - Tot - note taking on iOS, sync to Mac, $20
-25:11 - Spark - email app, Spark for teams
-28:10 - Unarchiver
-28:54 - Ulysses - writing app , good to gather research
-31:27 - Mactracker - track apple devices
-32:34 - end
 =====================================
-
+=====================================
+=====================================
+=====================================
+=====================================
+# for fzf - add these lines to .bashrc
+#     export FZF_DEFAULT_COMMAND="fd . $HOME"
+#     export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
+#     export FZF_ALT_C_COMMAND="fd -t d . $HOME"
+=====================================
+# bat - for light background add the following into .bashrc:
+#   export BAT_THEME="OneHalfLight"
+=====================================
+# exa - for light background add the folloing into .bashrc:
+#   EXA_COLORS="uu=8;31:ex=8;31:sn=8;34:sb=8;34:di=10;32"
+#   EXA_COLORS="$EXA_COLORS:ur=8;31:uw=8;31:ux=8;31:ue=8;31"
+#   EXA_COLORS="$EXA_COLORS:gr=8;34:gw=8;34:gx=8;34:tr=8;31:tw=8;31:tx=8;31"
+#   export EXA_COLORS
+# also add the folloing into .bash_aliases
+#   alias ee='exa -lF'
+#   alias eee='exa -lFa'
+#   alias ll='exa -lF'
+#   alias lll='exa -lFa'
+=====================================
+# Mactex (this is 3.42 GB in size) - to do formulas on Mac
+#   https://tug.org/mactex/mactex-download.html
+=====================================
+# Commercial Software optional
+# BBEdit $49.99 https://www.barebones.com/store/download.html
+# UltraEdit for Mac $99.95 https://www.ultraedit.com/products/mac-text-editor/
+# DeltaWalker for Mac $59.95 (compare files / directores) https://www.deltawalker.com/
+# DaisyDisk $9.99 https://itunes.apple.com/us/app/daisydisk/id411643860?mt=12
+# Alfred - hotkeys - search, keywords, text expansion https://www.alfredapp.com/
+========================================================
+# MySQL:
+#   - install MySQL community edition from https://dev.mysql.com/downloads/mysql/ 
+#   - install MySQL WorkBench community edition from https://dev.mysql.com/downloads/workbench/
+=====================================
+# Recording part of the screen: Uberlayer or Overlay:
+#   https://github.com/jankeesvw/uberlayer
+#   https://apps.apple.com/hu/app/overlay/id653092846?mt=12
+# Pandoc - convert html to docx, etc. - https://pandoc.org/
+# FileZilla - FTP app - https://filezilla-project.org/download.php?platform=osx
+# WiFi Explorer Lite - https://itunes.apple.com/us/app/wifi-explorer-lite/id1408727408?mt=12
+=====================================
+# Oceanaudio - audio edit/convert - http://www.ocenaudio.com/
+# OpenShot Video Editor - https://www.openshot.org/
+# MediaHuman Audio Converter - https://www.mediahuman.com/audio-converter/
+# Tag Stripper (for audio) - https://www.markvapps.com/tagstripper
+=====================================
+# Some other tools I like:
+#   Alfred
+#   Ghost Reader Plus - convert text to Audio
+#   GitHub Desktop
+#   Splashtop Business - manage remote computers
+#   Apple Store app "Draw on My Screen EZ"
+#   Adobe Photoshop & Illustrator
+#   MacX DVD Video Converter Pro Pack - convert video to video or audio
+#   EpuborAudibleConverter - convert audio books into mp3
+#   EPUB Converter.app - convert electronic books into txt or PDF
+#   NordVPN IKE.app - VPN
+#   PingPlotter.app - trace network problems
+=====================================
+# More good software: https://www.youtube.com/watch?v=ROIMJ-M21gM&t=622s
 =====================================
 
