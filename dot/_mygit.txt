@@ -8,12 +8,7 @@ if [ -f ~/.git-completion.bash ]; then
 fi
 
 # --------------------------------------------------------------
-function gitup {
-  git stash clear
-  git stash
-  git pull
-  git stash apply
-}
+# gist and gitup were moved from here into small bash scripts in "bin" directory in path
 
 # --------------------------------------------------------------
 function gd2 {
