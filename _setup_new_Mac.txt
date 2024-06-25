@@ -1,12 +1,16 @@
 Initial installation
-  User account, admin rights, 
-  Network access, WiFi, iCloud Account
-  MS Office, MS Teams, OneDrive
+.. User account, password, 
+.. WiFi, fingerprint,
+.. iCloud Account
+.. Finder - show extensions, creates $HOME/docs directory as default
+.. trackpad settings - turn off the "Force Click and haptic feedback"
+.. iTerm2 - https://www.iterm2.com/
+.. chsh -s /bin/bash 
+.. install .bashrc and other env fiels from "dot" directory
 ========================================================
 Free software 
 .. Blackmagic Disk Speed Test
    https://itunes.apple.com/us/app/blackmagic-disk-speed-test/id425264550?mt=12
-.. iTerm2 - https://www.iterm2.com/
 .. Sublime Text - text editor - https://www.sublimetext.com/3
    sudo ln -s "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl" /usr/local/bin/subl
 .. Visual Studio Code - https://code.visualstudio.com/download
@@ -21,32 +25,29 @@ Free software
 .. VLC Video Player - https://www.videolan.org/vlc/download-macosx.html
 .. Adobe Acrobat Reader -    https://get.adobe.com/reader/
 .. Malwarebytes Antimalware
-.. Kdenlive Video Editor - https://kdenlive.org/en/download/
-========================================================
-  chsh -s /bin/bash 
 ========================================================
 Download this repo, unzip:
  .. https://github.com/lselector/setup_computer
 ========================================================
 Commercial Software
+.. MS Office, MS Teams, OneDrive
 .. Memory Clean $9.99
    https://fiplab.com/apps/memory-clean-for-mac
 .. BetterSnapTool $2.99
    https://itunes.apple.com/us/app/bettersnaptool/id417375580?mt=12
-.. FreeSpace $0.99
-   https://itunes.apple.com/us/app/freespace/id457520846?mt=12
 .. PDF Expert ~$75/year
 .. Bartender
    https://www.macbartender.com
 ========================================================
-
 Free software - more
+.. Kdenlive Video Editor - https://kdenlive.org/en/download/
 .. Scroll Reverser - tune scrolling direction for mouse vs trackpad
    https://pilotmoon.com/scrollreverser/
 .. SeaMonkey - HTML Editor
    http://www.seamonkey-project.org/releases/
+.. FreeSpace $0.99
+   https://itunes.apple.com/us/app/freespace/id457520846?mt=12
 =====================================
-
 Install Python
 
 I recommend either anaconda or miniconda
