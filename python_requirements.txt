@@ -1,11 +1,17 @@
 # -------------------------------------
-# download and install miniconda
+# Download and install Python from main python website:
+#    https://www.python.org/downloads/
+# 
+# ln -s /Library/Frameworks/Python.framework/Versions/3.12/bin/python3 python
+# ln -s /Library/Frameworks/Python.framework/Versions/3.12/bin/pip3 pip
+# 
+# alternatively download and install miniconda
 #      https://docs.conda.io/en/latest/miniconda.html
 # make sure that these directories added to PATH:
 #      $HOME/miniconda3/condabin
 #      $HOME/miniconda3/bin
 # then run command to install modules listed below:
-#      pip install -r miniconda3_requirements.txt
+#      pip install -r python_requirements.txt
 # Note: pip caches downloads (in directory $(pip cache dir)
 # Note: pip install is better and faster than conda install
 # Note: I also tried to use mamba: https://github.com/mamba-org/mamba
@@ -17,37 +23,16 @@ ipywidgets           # browser widgets
 numpy
 pandas
 scikit-learn
-statsmodels
-xgboost              # Ensemble regression / classification
-nltk                 # Natural Language Took Kit
-hdbscan              # clustering
 matplotlib           # graphs, histograms, etc.
-# ----------------- LLM training
-torch 
-torchvision 
-torchaudio
-torchtext
-spacy
-bitsandbytes
-transformers
-peft
-datasets
-accelerate
 # ----------------- chatbots, etc
 ipython
 openai
-langchain
-langchain_community
-langchain-openai
-langchain-anthropic
 anthropic
 python-dotenv
 google-search-results
-langgraph
 flask
 streamlit
 chainlit
-watchdog
 # ----------------- misc
 icalendar     # make calendar invites
 pytube        # download youtube videos
@@ -57,9 +42,30 @@ python-pptx   # create MS PowerPoint from Python
 # xpdf_python   # create PDF from Python (old, requires old gitpython, conflict with streamlit)
 pyqrcode      # create QR Code
 pypng         # create PNG file
-
 # -------------------------------------
 # rarely needed
+# ----------------- 
+# statsmodels
+# xgboost              # Ensemble regression / classification
+# nltk                 # Natural Language Took Kit
+# hdbscan              # clustering
+# ----------------- LLM training
+# torch 
+# torchvision 
+# torchaudio
+# torchtext
+# spacy
+# bitsandbytes
+# transformers
+# peft
+# datasets
+# accelerate
+# langchain
+# langchain_community
+# langchain-openai
+# langchain-anthropic
+# langgraph
+# watchdog
 # -------------------------------------
 # termcolor
 # pivottablejs

@@ -11,10 +11,16 @@ Visual Studio Code:
  - https://code.visualstudio.com/download
  
 ================================================
-Anaconda Python
+Python - 3 types on installs:
 
-Download Windows 64-bit Graphical installer from here: 
+Regular python: 
+ - https://www.python.org/downloads/
+Anaconda 64-bit Graphical installer:
  - https://www.anaconda.com/products/individual#windows 
+Miniconda:
+ - https://docs.anaconda.com/miniconda/
+
+Below are docs for anaconda:
 
 Accurately follow instructions for installation: 
  - https://docs.anaconda.com/anaconda/install/windows/ 
