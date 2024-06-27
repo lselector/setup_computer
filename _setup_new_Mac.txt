@@ -88,6 +88,12 @@ also do this:
         sudo ln -snf python3 python
         sudo ln -snf python3.12 python3
 
+
+Also open the folder /Applications/Python 3.x (x is the version you are running).
+Double click the Install Certificates.command. 
+It will open a terminal and install the certificate.
+Repeat this twice.
+
 =====================================
 Installing modules:
         pip install --upgrade pip
