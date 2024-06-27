@@ -83,6 +83,11 @@ If you have several versions, you can see them in
 You can change the link like this:
         sudo ln -snf 3.13 Current
 
+also do this:
+        cd /usr/local/bin
+        sudo ln -snf python3 python
+        sudo ln -snf python3.12 python3
+
 =====================================
 Installing modules:
         pip install --upgrade pip
