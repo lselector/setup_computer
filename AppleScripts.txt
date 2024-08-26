@@ -1,0 +1,98 @@
+==================================================
+Unzip AppleScripts.zip, 
+Go into the folder - there are 3 "app" files and 3 images.
+For each of 3 app files:
+  right-click, open, open.
+  repeat
+  then test that it works on double-clicking
+==================================================
+A new security feature in Mojave pops up a system dialog 
+saying that your app wants access to control something
+(usually a Finder.app).
+To remove these popups, go to 
+    System Preferences > Security & Privacy, 
+  unlock
+  add all apps to "Accessibility" and "Full Disk Access"
+  lock again
+==================================================
+Adding icons:
+  AppleScripts folder contains 3 images for icons.
+  Alternatively you can find icons online.
+  Right click on script .app file - select "Get info"
+  Drag the icon image onto the top-left icon in this window
+  Close the info window
+==================================================
+Copy apps to Applications, do NOT start them there.
+Option-Command - to drag apps to the top panel of a finder window
+Close Applications finder window
+==================================================
+How to make apps from code:
+  Below find the code of several apps.
+  Go to Applications/Utilities
+  Double-click on Script Editor.app
+  Copy/paste the script into it
+  Click on |> button to compile it
+  Save it as .app
+==================================================
+Below are texts of several apple scripts.
+Note - you can use spaces for identation.
+But when you run it inside the "Script Editor",
+it will automatically fix formatting and convert to tabs.
+
+==================================================
+Applescript "my_RefreshWindow"
+==================================================
+tell application "Finder" to tell front window to update every item
+
+==================================================
+Applescript "my_NewTextFile"
+==================================================
+try
+tell application "Finder" to set the currentFolder to (folder of the front window as alias)
+on error
+set thecurrentFolder to path to desktop folder as alias
+end try
+
+set nowSeconds to ((current date) - (date ("1/1/1970")) - (time to GMT)) as miles as string
+set currentFile to POSIX path of currentFolder & "AAAAA_" & nowSeconds & ".txt"
+
+do shell script "touch \"" & currentFile & "\""
+
+==================================================
+Applescript "my_New_iTerm2"
+from https://github.com/wonderyue/Go2ShellAppleScript
+
+==================================================
+tell application "Finder"
+    set pathList to (quoted form of POSIX path of (folder of the front window as alias))
+end tell
+
+tell application "System Events"
+    if not (exists (processes where name is "iTerm")) then
+        do shell script "open -a iTerm " & pathList
+    else
+        tell application "iTerm"
+            activate
+            
+            set aWindow to current window
+            tell aWindow
+                set t to (create tab with default profile)
+            end tell
+            
+            tell current session of aWindow
+                write text "cd " & pathList & ";clear;"
+            end tell
+            
+        end tell
+        
+    end if
+end tell
+==================================================
+Note - previously I used iTerm opening script from here:
+    http://peterdowns.com/posts/open-iterm-finder-service.html
+    https://medium.com/@bschlining/integrate-iterm2-v-3-with-your-macs-finder-f3825acd3e0b
+    http://hohonuuli.blogspot.de/2016/02/iterm2-version-3-open-iterm-here-script.html  
+==================================================
+Note - there are also some apps in the Apple Store, for example:
+    NewTerminalHere
+==================================================

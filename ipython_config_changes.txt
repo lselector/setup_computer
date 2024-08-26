@@ -1,0 +1,6 @@
+
+
+c.TerminalInteractiveShell.display_completions = 'readlinelike'
+
+c.TerminalInteractiveShell.ast_node_interactivity = 'all'
+

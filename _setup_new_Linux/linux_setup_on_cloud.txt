@@ -1,0 +1,585 @@
+# ----------------------------------------------
+You can get Linux VM on any of major clouds (AWS, Azure, Google).
+Below I describe steps for Azure
+
+https://portal.azure.com
+# ----------------------------------------------
+VM1 - myvm1
+
+Ubuntu Server 20.04
+16 vcpus 64 GB
+extra 2TB disk
+default user "azureuser"
+# ----------------------------------------------
+ssh keys are generated as part of the process
+You download the private key (text file with extension ".pem")
+Alternatively you can generate it yourself
+    ssh-keygen -t rsa -b 4096
+    Note: for passphrase - hit <ENTER>
+
+Make sure that you have directory ~/.ssh
+Make directory ~/.ssh/myvm1
+and put your file there:
+    ~/.ssh/myvm1/myvm1.pem
+
+Permissions:
+    # go - group & owner
+    on server: chmod go-w /home/$USER
+               chmod 700 /home/$USER/.ssh
+
+    on client: chmod 700 /Users/$USER/.ssh
+               chmod 600 /Users/$USER/.ssh/myvm1/*
+
+alias a1='ssh -i /Users/$USER/.ssh/myvm1/myvm1.pem azureuser@myvm1.eastus.cloudapp.azure.com'
+
+and added the following entry into file .ssh/config
+
+Host 12.34.123.45
+    HostName 12.34.123.45
+    IdentityFile /Users/$USER/.ssh/myvm1/myvm1.pem
+
+# --------------------------------------------------------------
+In Azure VM Network:
+  open ports - http (80), https (443), ssh (22)
+
+# --------------------------------------------------------------
+
+Add additional 2TB disk
+
+Instructions on how to partition, format, and mount additional disk to VM.
+ - https://www.cyberciti.biz/tips/fdisk-unable-to-create-partition-greater-2tb.html
+ - https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
+
+df -h
+
+# run command
+lsblk
+
+found "sdc" device with 1TB size
+
+# create file system on the empty drive
+sudo mkfs -t xfs /dev/sdc
+
+# create mount point:
+sudo mkdir /data
+sudo mount /dev/sdc /data
+
+cd /data
+sudo chown azureuser:azureuser
+
+# modify /etc/fstab to automount the disk
+
+sudo cp /etc/fstab /etc/fstab.orig
+
+sudo blkid | grep sdc
+/dev/sdc: UUID="34f96ab6-b3cb-4989-83e1-df56cb384e23" TYPE="xfs"
+
+# add the following line to the /etc/fstab:
+
+# <file system>                             <mount point>   <type>  <options>        <dump>  <pass>
+UUID=34f96ab6-b3cb-4989-83e1-df56cb384e23    /data           xfs     defaults,nofail    0       2
+
+sudo vi /etc/fstab
+
+# test
+sudo umount /data
+df -h
+sudo mount -a
+df -h
+
+# --------------------------------------------------------------
+remove welcome banner when login-ing into VM server:
+
+    cd /etc/update-motd.d
+    sudo chmod -x *
+    sudo chmod +x 98-reboot-required
+
+# --------------------------------------------------------------
+# make sure we have latest Git
+which git
+git --version
+sudo apt-get update
+sudo apt-get install git
+git --version
+
+# --------------------------------------------------------------
+# clone Lev's repo to set up environment
+cd /data
+mkdir SOFT
+cd SOFT
+git clone https://github.com/lselector/setup_computer.git
+
+cd /data/SOFT/setup_computer/dot
+cp ./_* ~/
+cd
+mv _vimrc.txt .vimrc
+
+vi .profile
+vi _profile.txt
+rm .profile
+mv _profile.txt .profile
+
+vi _myvv.txt
+mv _myvv.txt .myvv
+
+vi _mygit.txt
+mv _mygit.txt .mygit
+
+mv _inputrc.txt .inputrc
+mv _gitexcludes.txt .gitexcludes
+mv _git-completion.bash .git-completion.bash
+
+vi _bash_profile.txt
+mv _bash_profile.txt .bash_profile
+
+mv _gitconfig.txt .gitconfig
+vi .gitconfig
+
+vi _bash_aliases.txt
+mv _bash_aliases.txt .bash_aliases
+
+vi _bashrc.txt
+vi _bashrc_fish.txt
+rm _bashrc_fish.txt
+mv _bashrc.txt .bashrc
+
+# --------------------------------------------------------------
+# Install fd-find:
+
+cd /data/SOFT
+wget https://github.com/sharkdp/fd/releases/download/v7.3.0/fd_7.3.0_amd64.deb
+sudo dpkg -i fd_7.3.0_amd64.deb
+which fd
+fd --help
+fd
+
+# --------------------------------------------------------------
+# install miniconda python - and some modules
+
+https://docs.anaconda.com/free/miniconda/#quick-command-line-install
+
+mkdir -p ~/miniconda3
+wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda3/miniconda.sh
+bash ~/miniconda3/miniconda.sh -b -u -p ~/miniconda3
+rm -rf ~/miniconda3/miniconda.sh
+
+# choose location /data/miniconda3
+# choose to initialize
+# check the .bashrc and other dot files for PATH and PYTHONPATH
+
+cd
+vi .bash_profile
+vi .profile
+vi .bashrc
+exit
+which python
+which pip
+which ipython
+path
+
+# install additional modules
+cd /data/SOFT/setup_computer/
+pip install -r miniconda3_requirements.txt
+
+# check if directory $HOME/.ipython exists. If not - create it:
+ipython profile create
+
+# copy Lev's common startup modules under .ipython:
+cd ~/.ipython/profile_default/startup
+cp /data/SOFT/setup_computer/ipython_startup/*py   ./
+
+# find ipython_config.py - and copy it under .ipython
+
+cd /data/miniconda3
+fd ipython_config.py
+
+cp lib/python3.9/site-packages/jupyter_core/tests/dotipython/profile_default/ipython_config.py ~/.ipython/profile_default
+
+cd ~/.ipython/profile_default
+
+vi ipython_config.py
+
+# add two lines
+
+c.TerminalInteractiveShell.display_completions = 'readlinelike'
+c.InteractiveShell.ast_node_interactivity = 'all'
+
+Test ipython
+
+# --------------------------------------------------------------
+# Create a 'swap-file';  16G in this case
+sudo fallocate -l 16G /data/swapfile
+sudo chmod 600 /data/swapfile
+ls -lh /data/swapfile
+sudo mkswap /data/swapfile
+sudo swapon /data/swapfile
+
+# Several ways to check:
+sudo swapon --show
+free -h
+htop
+grep Swap /proc/meminfo
+swapon -s
+cat /proc/swaps
+
+# Edit file /etc/fstab - add this line:
+  /data/swapfile   none   swap   sw   0   0
+
+# Note:
+#   Use (multiple) spaces to separate fields on line
+#   Use "sudo" to edit the file
+#   Before editing - make a backup copy of the file
+#
+# sudo reboot # check swap after reboot
+
+# --------------------------------------------------------------
+Added directories under /data:
+
+/data/code
+/data/code/py_lib
+/data/code/bin
+/data/code/misc - for maintenance scripts
+/data/code/misc/SAVED
+
+/data/BACKUPS
+
+/data/log
+/data/log_old
+/data/log_test
+/data/log_test_old
+
+# --------------------------------------------------------------
+Added maintenance backup scripts under "/data/code/misc"
+and scheduled them in crontab
+
+# --------------------------------------------------------------
+create $HOME/.bashrc_crontab file
+schedule some basic jobs in crontab - and check that they are workign OK
+
+# --------------------------------------------------------------
+set up git commands like gist, gd, gistall, gg
+
+# --------------------------------------------------------------
+install nginx, secure certificates
+
+(base) azureuser@ipc-ml-vm:/d/c/misc$ cat HOW_TO_WEB.txt
+# --------------------------------------------------------------
+# install nginx web server
+https://mediatemple.net/community/products/developer/204405534/install-nginx-on-ubuntu
+https://ubuntu.com/tutorials/install-and-configure-nginx#2-installing-nginx
+https://ubuntu.com/tutorials/install-and-configure-nginx#3-creating-our-own-website
+
+sudo apt install nginx
+sudo /etc/init.d/nginx start
+
+test:
+   sudo nginx -t
+restart:
+   sudo /etc/init.d/nginx restart
+   or
+   sudo systemctl restart nginx
+
+cd /etc/nginx/
+
+# Try in browser:
+http://myhash1.westus2.cloudapp.azure.com/
+# ----------------------------------------------
+configuration file    :   /etc/nginx/nginx.conf
+log files             :   /var/log/nginx/
+sites definitions     :   /etc/nginx/sites-available/myhash1
+# --------------------------------------------------------------
+Add new site
+ - http://www.servermom.org/how-to-add-new-site-into-your-nginx-based-ubuntu-server/
+
+add default html page:
+
+sudo mkdir -p /var/www/myhash1.westus2.cloudapp.azure.com/htdocs
+sudo mkdir -p /var/www/myhash1.westus2.cloudapp.azure.com/logs
+sudo chmod 755 /var/www
+cd /var/www
+sudo chown -R azureuser:azureuser myhash1.westus2.cloudapp.azure.com/
+sudo chown -R azureuser:azureuser html
+cd myhash1.westus2.cloudapp.azure.com/htdocs/
+
+# create simple index.html file
+vi index.html
+chmod +x index.html
+
+# ----------------------------------------------
+cd /etc/nginx/sites-available/
+sudo cp default myhash1
+sudo vi myhash1
+
+server {
+            listen 80;
+            listen [::]:80;
+
+            server_name myhash1.westus2.cloudapp.azure.com;
+
+            root      /var/www/myhash1.westus2.cloudapp.azure.com/htdocs/ ;
+            index index.html index.htm index.nginx-debian.html ;
+
+}
+
+# ----------------------------------------------
+restart the server - you should be able to see a simple website using http (no https yet)
+# ----------------------------------------------
+# ----------------------------------------------
+configure ssh certificate
+
+https://letsencrypt.org/
+https://letsencrypt.org/getting-started/
+https://certbot.eff.org/
+https://certbot.eff.org/instructions
+
+Note:
+Let's Encrypt blocks Amazon AWS domains 
+because the domain names are transient and are subject to change.
+
+https://community.letsencrypt.org/t/policy-forbids-issuing-for-name-on-amazon-ec2-domain/12692/4
+https://community.letsencrypt.org/t/policy-forbids-issuing-for-name-on-amazon-ec2-domain/12692/3
+
+To fix that make a "A" DNS record pointing to public IP of the Linux server
+(for example, in Google Domains where you keep your domain)
+
+# ----------------------------------------------
+
+sudo apt update
+sudo apt-get install certbot python3-certbot-nginx  --fix-missing
+sudo certbot --nginx
+     note: it found the domain - and offered to generate and install for it.
+     note: it asked for email - I entered mine
+
+Once this worked - I edited the config (now it has the port 443) as following and restarted nginx:
+
+server {
+    listen [::]:443 ssl ipv6only=on; # managed by Certbot
+    listen 443 ssl; # managed by Certbot
+    ssl_certificate     /etc/letsencrypt/live/myhash1.westus2.cloudapp.azure.com/fullchain.pem; # managed by Certbot
+    ssl_certificate_key /etc/letsencrypt/live/myhash1.westus2.cloudapp.azure.com/privkey.pem; # managed by Certbot
+    include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+         server_name myhash1.westus2.cloudapp.azure.com ;
+         root      /var/www/myhash1.westus2.cloudapp.azure.com/htdocs/ ;
+         index index.html index.htm index.nginx-debian.html ;
+
+         access_log  /var/www/myhash1.westus2.cloudapp.azure.com/logs/access.log ;
+         error_log   /var/www/myhash1.westus2.cloudapp.azure.com/logs/error.log ;
+
+         location /prod {
+             proxy_pass http://127.0.0.1:8000;
+             proxy_set_header Host $host;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             proxy_read_timeout 240s;
+         }
+
+         location /test {
+             proxy_pass http://127.0.0.1:8010;
+             proxy_set_header Host $host;
+             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+             proxy_read_timeout 240s;
+         }
+ }
+
+server {
+            listen 80;
+            listen [::]:80;
+
+            server_name myhash1.westus2.cloudapp.azure.com;
+
+#         root      /var/www/myhash1.westus2.cloudapp.azure.com/htdocs/ ;
+#         index index.html index.htm index.nginx-debian.html ;
+
+         return 301 https://$server_name$request_uri;
+
+}
+
+
+Note, if later you want to add yet another domain:
+
+create the new DNS A-record to point to the Linux server public IP address
+edit the nginx config to add both servers at port 80 - and remove redirect.
+for example:
+
+server {
+    listen 80;
+    listen [::]:80;
+    server_name app.myhash.com;
+    server_name test.myhash.com;
+    root      /var/www/myhash1.westus2.cloudapp.azure.com/htdocs/ ;
+    index index.html index.htm index.nginx-debian.html ;
+    # return 301 https://$server_name$request_uri;
+}
+
+Then restart the server and test that these links work:
+
+    http://app.myhash.com
+    http://test.myhash.com
+
+Then run this command to expand the certificate to both domains:
+
+certbot --webroot -w /var/www/myhash1.westus2.cloudapp.azure.com/htdocs/ certonly -d app.myhash.com -d test.myhash.com
+
+Check that there was no errors.
+Then edit nginx config as needed and restart the nginx server
+
+# ----------------------------------------------
+# check for automatic renewal:
+
+sudo certbot renew --dry-run
+
+Note:
+renewal is scheduled in this file:
+
+     /etc/cron.d/certbot
+
+as following command:
+
+0 */12 * * * root test -x /usr/bin/certbot -a \! -d /run/systemd/system && perl -e 'sleep int(rand(43200))' && certbot -q renew
+
+Note that the 6th element in this command is the user name (root).
+This syntax of files in /etc/cron.d/ directory is a bit different
+from regular user crontab files.
+# ----------------------------------------------
+configure jupyter access
+
+https://jupyter-notebook.readthedocs.io/en/stable/public_server.html
+
+sudo chmod -R 755 /etc/letsencrypt/live
+sudo chmod -R 755 /etc/letsencrypt/archive
+sudo chmod 644 /etc/letsencrypt/archive/myhash1.westus2.cloudapp.azure.com/*.pem
+
+jupyter notebook --generate-config
+# Writing default config to: /home/azureuser/.jupyter/jupyter_notebook_config.py
+
+jupyter notebook password
+Enter password:  ****
+Verify password: ****
+[NotebookPasswordApp] Wrote hashed password to /home/azureuser/.jupyter/jupyter_notebook_config.json
+
+vi ~/.jupyter/jupyter_notebook_config.py
+
+c.NotebookApp.certfile = '/etc/letsencrypt/live/myhash1.westus2.cloudapp.azure.com/fullchain.pem'
+c.NotebookApp.keyfile  = '/etc/letsencrypt/live/myhash1.westus2.cloudapp.azure.com/privkey.pem'
+
+# Set ip to '*' to bind on all interfaces (ips) for the public server
+c.NotebookApp.ip = '*'
+c.NotebookApp.open_browser = False
+c.NotebookApp.iopub_data_rate_limit = 10000000000
+
+# c.NotebookApp.password = u'<your hashed password here from .json file>'
+# c.NotebookApp.password = u'8$LDQU92jqeanox4Eq6EeEJw$vFWWAO3ghixZYO+8mf8GxsO7mE3TDAL7Gew3ZW1OSmA'
+c.NotebookApp.port = 8888
+# --------------------------------------------------------------
+
+In Azure browser interface for the VM go to network inbound rules and add a rule to open ports 8888-8898
+
+Then in the browser go to:
+     https://myhash1.westus2.cloudapp.azure.com:8888/
+
+Enter the password - and you should be in.
+
+# --------------------------------------------------------------
+install gunicorn application server
+
+https://www.airpair.com/python/posts/python-servers
+https://gunicorn.org/
+
+conda install gunicorn
+# ----------------------------------------------
+Configure nginx & gunicorn
+
+Configuration and (re)starting of nginx and gunicorn
+is described in a separate file
+
+script to start gunicorn on reboot:
+
+    /etc/init.d/gnu_unicorn
+
+# --------------------------------------------------------------
+#   Install Azure CLI on MacOS and Ubuntu
+#
+#   https://docs.microsoft.com/en-us/cli/azure/install-azure-cli?view=azure-cli-latest
+#
+#   MacOS:
+#      brew install azure-cli
+#   Ubuntu:
+#      curl -sL https://aka.ms/InstallAzureCLIDeb | sudo bash
+#
+#   Here how to work with Azure storage:
+#      https://docs.microsoft.com/en-us/azure/storage/common/storage-azure-cli
+#
+#   Examples of commands:
+#
+#     az --help
+#     az --version
+#     az account list
+#     az storage file upload -s $SHARE_NAME/$DIR_NAME --source myfile.txt
+# ----------------------------------------------
+#
+# SQL Data Warehouse
+#
+# mysql1
+#    user:  myadmin
+#    passwd: mypass (two commas at the end)
+#
+# Performance Level - Gen2: DW100c
+#
+# server name: mysql1.database.windows.net
+#
+# Driver={ODBC Driver 13 for SQL Server};Server=tcp:mysql1.database.windows.net,1433;Database=mysql1;Uid=myadmin@mysql1;Pwd={your_password_here};Encrypt=yes;TrustServerCertificate=no;Connection Timeout=30;
+#
+# ----------------------------------------------
+#
+# Microsoft mssql-tools for Mac:
+#
+# brew tap microsoft/mssql-release https://github.com/Microsoft/homebrew-mssql-release
+#
+# brew update
+#
+# brew install msodbcsql mssql-tools
+#
+# ----------------------------------------------
+#
+# Microsoft mssql-tools for Ubuntu Linux:
+#
+#  - https://docs.microsoft.com/en-us/sql/linux/quickstart-install-connect-ubuntu?view=sql-server-2017
+#
+#    curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+#    curl https://packages.microsoft.com/config/ubuntu/16.04/prod.list | sudo tee /etc/apt/sources.list.d/msprod.list
+#    sudo apt-get update
+#    sudo apt-get install mssql-tools unixodbc-dev
+#
+# ----------------------------------------------
+#
+#  Env. and aliases for bcp and sql
+#.
+#  from your .bashrc source file .my_azure with the following definitions:
+#
+#  export MSA1="myadmin@myvm1.eastus.cloudapp.azure.com"
+#  export MSDW="-S mysql1.database.windows.net -U myadmin -P mypass -d mysql1"
+#  alias a1='ssh myadmin@myvm1.eastus.cloudapp.azure.com'
+#  alias asql="sqlcmd $MSDW -I"
+#  alias abcp="bcp tab2 out junk.txt $MSDW -c -t, -q"
+#
+#  Then you can work with Azure Data Warehouse like this:
+#.
+#  asql -Q ' select count(1) from tab2'
+#  Executing SQL commands from file:
+#
+#  asql -i fname.sql
+#.
+#  bulk copy (bcp) between file and table:
+#
+#  bcp tab1 in junk.csv $MSDW -c -t, -q
+#  bcp tab1 out junk.csv $MSDW -c -t,
+#
+#  Also you can work from interactive sql prompt by typing command:
+#
+#  asql
+#
+#  https://docs.microsoft.com/en-us/sql/tools/sqlcmd-utility?view=sql-server-2017
+#
+# --------------------------------------------------------------
+

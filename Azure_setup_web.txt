@@ -1,0 +1,260 @@
+# ----------------------------------------------
+configuration file    :   /etc/nginx/nginx.conf
+log files             :   /var/log/nginx/
+sites definitions     :   /etc/nginx/sites-available/myvm1
+
+restarting            :   sudo /etc/init.d/nginx start
+
+# ----------------------------------------------
+install nginx web server
+  https://mediatemple.net/community/products/developer/204405534/install-nginx-on-ubuntu
+   
+   sudo apt-get install nginx
+   sudo /etc/init.d/nginx start
+
+test:
+   sudo nginx -t
+restart:
+   sudo /etc/init.d/nginx restart
+   or
+   sudo systemctl restart nginx
+# ----------------------------------------------
+Add new site
+ - http://www.servermom.org/how-to-add-new-site-into-your-nginx-based-ubuntu-server/
+
+add default html page:
+  sudo mkdir -p /var/www/myvm1.eastus.cloudapp.azure.com/htdocs/
+  sudo mkdir -p /var/www/myvm1.eastus.cloudapp.azure.com/logs/
+  sudo chmod 755 /var/www
+  sudo chown -R myadmin:myadmin myvm1.eastus.cloudapp.azure.com/ 
+  sudo chown -R myadmin:myadmin html/
+  cd /var/www/myvm1.eastus.cloudapp.azure.com/htdocs/
+  vi /var/www/myvm1.eastus.cloudapp.azure.com/htdocs/index.html
+# ----------------------------------------------
+cd /etc/nginx/sites-available/
+sudo cp default myvm1
+vi myvm1
+
+server {
+        listen 443 ssl default_server;
+        listen [::]:443 ssl default_server;
+
+        server_name myvm1.eastus.cloudapp.azure.com ;
+        root /var/www/myvm1.eastus.cloudapp.azure.com/htdocs/ ;
+        index index.html index.htm index.nginx-debian.html ;
+
+        ssl_certificate /etc/letsencrypt/live/myvm1.eastus.cloudapp.azure.com/fullchain.pem; # managed by Certbot
+        ssl_certificate_key /etc/letsencrypt/live/myvm1.eastus.cloudapp.azure.com/privkey.pem; # managed by Certbot
+
+        access_log  /var/www/myvm1.eastus.cloudapp.azure.com/logs/access.log ;
+        error_log   /var/www/myvm1.eastus.cloudapp.azure.com/logs/error.log ;
+
+        location /prod {
+            proxy_pass http://127.0.0.1:8000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+
+        location /test {
+            proxy_pass http://127.0.0.1:8010;
+            proxy_set_header Host $host;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+}
+
+server {
+            listen 80;
+            listen [::]:80;
+
+            server_name myvm1.eastus.cloudapp.azure.com ;
+
+            return 301 https://$server_name$request_uri;
+}
+
+
+# ----------------------------------------------
+cd /etc/nginx/sites-enabled/default
+sudo ln -s /etc/nginx/sites-available/myvm1 default
+sudo /etc/init.d/nginx restart
+
+# ----------------------------------------------
+Now working with gunicorn app server:
+
+sudo /etc/init.d/gnu_unicorn restart
+
+log files:
+   /data/log_gunicorn_prod/gunicorn_prod.log
+   /data/log_gunicorn_test/gunicorn_test.log
+
+URLs:
+   https://myvm1.eastus.cloudapp.azure.com/prod
+   https://myvm1.eastus.cloudapp.azure.com/test
+# ----------------------------------------------
+
+gunicorn installation and configuration:
+
+ - https://www.airpair.com/python/posts/python-servers
+ - https://gunicorn.org/
+
+conda install gunicorn
+
+cd /data/apps
+mkdir webapp_test
+cd webapp_test
+vi myapp.py
+
+def app(environ, start_response):
+    data = b"Hello, World!\n"
+    start_response("200 OK", [
+        ("Content-Type", "text/plain"),
+        ("Content-Length", str(len(data)))
+    ])
+    return iter([data])
+
+vi gunicorn_test.cfg
+
+import multiprocessing
+
+bind = "127.0.0.1:8010"
+workers = 4
+reload = True
+
+cd /data/apps
+mkdir webapp_prod
+cd webapp_prod
+cp ../webapp_test/myapp.py ./
+vi gunicorn_prod.cfg
+
+import multiprocessing
+
+bind = "127.0.0.1:8000"
+workers = 8
+reload = True
+
+# ----------------------------------------------
+
+Here is a command to see the active listening internet connections:
+
+    sudo netstat -plnt
+
+# ----------------------------------------------
+
+Configure gunicorn to restart on reboot
+
+sudo vi /etc/init.d/gnu_unicorn_prod
+
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides:   gunicorn_prod
+# Required-Start:    $local_fs $remote_fs $network $syslog $named
+# Required-Stop:     $local_fs $remote_fs $network $syslog $named
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: starts the gunicorn_prod webapp server
+# Description:       starts gunicorn_prod 
+### END INIT INFO
+
+# script to start gunicorn_prod app server
+
+# gunicorn is installed under anaconda.
+# myapp.py uses modules under apps/py_lib_prod
+# so we need to provide PATH and PYTHONPATH
+
+# how to test if gunicorn is running:
+#     ps auxwww | grep gunicorn_prod
+
+# logs:
+#    /var/log/syslog
+#    /data/log_gunicorn_prod/log_gunicorn_prod.log
+
+PATH='/data/apps/bin_prod:/opt/mssql-tools/bin:/data/anaconda3/bin'
+export PATH="$PATH:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+export PYTHONPATH='.:/data/apps/py_lib_prod'
+export PYTHONDONTWRITEBYTECODE=1
+
+if [ -f /home/myadmin/.my_azure ] ;
+then
+    source /home/myadmin/.my_azure
+fi
+
+# -----------------------------------------------
+echo "doing pkill gunicorn"
+pkill gunicorn
+
+echo "killing lc_db_logger_prod.py"
+mynum=`ps auxww | grep lc_db_logger_prod.py | grep -v grep | wc -l`
+if [ "$mynum" -gt "0" ]; then
+    ps auxww | grep lc_db_logger_prod.py | grep -v grep | awk '{ print $2 }' | xargs sudo kill
+fi
+
+sleep 1
+# -----------------------------------------------
+touch /data/log_gunicorn_prod/log_gunicorn_prod.log
+chown myadmin:myadmin /data/log_gunicorn_prod/log_gunicorn_prod.log
+touch /data/log_gunicorn_prod/log_lc_db_logger_prod.log
+chown myadmin:myadmin /data/log_gunicorn_prod/log_lc_db_logger_prod.log
+# -----------------------------------------------
+echo "starting gunicorn for prod"
+su -s /bin/bash -c "cd /home/myadmin; . .bashrc_crontab; cd /data/apps/webapp_prod; gunicorn -c gunicorn_prod.cfg myapp:app >>/data/log_gunicorn_prod/log_gunicorn_prod.log 2>&1 & " myadmin
+su -s /bin/bash -c "cd /home/myadmin; . .bashrc_crontab; cd /data/apps/webapp_prod; /data/apps/webapp_prod/lc_db_logger_prod.sh >>/data/log_gunicorn_prod/log_gunicorn_prod.log 2>&1 & " myadmin
+# -----------------------------------------------
+
+# ------------------------------------
+Note - the comment on the top of the script is needed!
+Then run the following command :
+
+sudo update-rc.d gnu_unicorn defaults
+
+Then reboot:
+    sudo reboot
+
+check that gunicorn has started in syslog:
+    grep gunicorn /var/log/syslog 
+
+check that it is running:
+    ps auxww | grep gunicorn
+
+# ----------------------------------------------
+
+functions to restart separately test or prod app server:
+(added into ~/.bashrc)
+
+gt_restart() {
+  ps auxww | grep gunicorn_test | grep -v grep | awk '{ print $2 }' | xargs sudo kill
+  cd /data/apps/webapp_test
+  nohup gunicorn -c gunicorn_test.cfg myapp:app &
+}
+
+gp_restart() {
+  ps auxww | grep gunicorn_prod | grep -v grep | awk '{ print $2 }' | xargs sudo kill
+  cd /data/apps/webapp_prod
+  nohup gunicorn -c gunicorn_prod.cfg myapp:app &
+}
+
+# ----------------------------------------------
+Setting API for predictive model:
+We use app "Postman" for testing API
+  - https://www.getpostman.com/
+
+# ----------------------------------------------
+There are several ways to run multiple apps/environments.
+Here are some links:
+
+https://scottlinux.com/2014/04/03/how-to-host-multiple-django-or-python-apps-on-the-same-host-with-nginx-and-gunicorn/
+
+https://stackoverflow.com/questions/35320674/how-can-i-have-same-rule-for-two-locations-in-nginx-config
+
+https://www.thegeekstuff.com/2017/05/nginx-location-examples/
+
+
+Here are some more links:
+
+https://github.com/benoitc/gunicorn/blob/master/examples/multiapp.py
+
+http://flask.pocoo.org/docs/0.12/patterns/appdispatch/
+
+https://www.reddit.com/r/flask/comments/5vkc9t/ask_flask_how_to_deploy_multiple_apps_on_a_single/
+
+# ----------------------------------------------
+

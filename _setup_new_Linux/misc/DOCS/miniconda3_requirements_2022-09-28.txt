@@ -1,0 +1,78 @@
+# -------------------------------------
+# download and install miniconda
+#   https://docs.conda.io/en/latest/miniconda.html
+#   
+# make sure that these directories added to PATH:
+#     $HOME/miniconda3/condabin
+#     $HOME/miniconda3/bin
+# 
+# then run command to install modules listed below:
+#
+#   pip install -r miniconda3_requirements.txt
+# Note:
+#   pip caches downloads. You can find the location
+#   of caches by running command:
+#
+#     pip cache dir
+#
+# -------------------------------------
+# Note: I was considering to use 
+#   conda install --file requirements.txt
+# but decided to try to use only pip,
+# and so far it worked OK
+# -------------------------------------
+# Note: I also tried to use mamba
+#   https://github.com/mamba-org/mamba
+# but found that it is a bit more difficult
+# and takes more disk space than pip.
+# Look at file "mamba_install.bash"
+# -------------------------------------
+
+# -------------------------------------
+# modules for a data scientist
+# -------------------------------------
+notebook             # jupyter Notebook
+jupyterlab           # jupyter Lab
+ipywidgets           # browser widgets
+numpy
+pandas
+sklearn
+statsmodels
+
+xgboost
+# hdbscan              # clustering
+
+matplotlib
+plotly
+dash
+seaborn
+plotnine
+# -------------------------------------
+# shap        # ML feature analysis
+numba==0.53   # shap depends on specific numba
+shap
+# -------------------------------------
+pytube        # download youtube videos
+# -------------------------------------
+gunicorn
+
+# -------------------------------------
+# rarely needed
+# -------------------------------------
+# termcolor
+# pivottablejs
+# pyspark
+# -------------------------------------
+# ipython-sql
+# sql
+# mysql-connector-python
+# pyyaml
+# -------------------------------------
+# google-api-python-client
+# google-auth-httplib2
+# google-auth-oauthlib
+# -------------------------------------
+# h2o
+# imblearn
+# speech_recognition
+# -------------------------------------

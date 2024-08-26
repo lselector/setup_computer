@@ -1,0 +1,385 @@
+How To Serve NGINX Subdomains or Multiple Domains
+Published:6 December 2021 by Hitesh Jethva
+https://adamtheautomator.com/nginx-subdomain/
+
+# ---------------------------------------------------------
+Do you have a server with a single public IP address, 
+but need to host multiple domains or subdomains? 
+What would you do? 
+This scenario can be confusing if you are a beginner. 
+But no worries, this tutorial has got you covered, 
+so you can serve an NGINX subdomain and multiple domains.
+
+In this tutorial, you’ll learn how to effectively serve 
+NGINX subdomains or multiple domains on one server with 
+a single IP address!
+
+If you’re ready, time to get down to it!
+
+Prerequisites
+
+This tutorial comes with hands-on demos but doesn’t require 
+many prerequisites and will assume you have an Ubuntu Server 
+LTS with SSH enabled and NGINX installed. 
+The demos in this tutorial are on Ubuntu Server LTS 20.04.1.
+
+# ---------------------------------------------------------
+Setting Up DNS Records
+
+Before you can serve NGINX subdomains or multiple domains, 
+you will need to add an A record in a DNS control panel. 
+The A record binds and points all domains and subdomains 
+to a single IP address to let web browsers find your website.
+
+# ---------------------------------------------------------
+1. Launch your favorite web browser, and log in to your 
+DNS control panel.
+
+# ---------------------------------------------------------
+2. Click on Add Record to start adding A records. 
+Your browser redirects to a page where you’ll configure 
+DNS settings for your domain and subdomains.
+
+Adding an A Record
+
+Now configure the DNS settings with the following:
+
+Select A record in the Type field.
+
+Enter @ in the Host field, and your server IP in the Value field.
+
+Select your desired value in the TTL field, then click 
+on the Confirm button to save the settings.
+
+# ---------------------------------------------------------
+Repeat the same process for other subdomains.
+
+Configuring DNS settings for Domain and Subdomains 
+The final DNS Settings page looks like the one below. 
+
+  ... Viewing DNS Settings Page
+
+Your DNS record control panel may vary in functionality 
+and design, but the same principles will apply to all.
+
+# ---------------------------------------------------------
+Setting Up Web Directories for NGINX Domain and Subdomain
+
+Now that you’ve added A records for your domain and subdomains, 
+it’s time to set up their web directories. 
+NGINX comes with a default virtual host file and is configured 
+to serve a web directory located at /usr/share/nginx/html.
+
+You’ll create a separate web directory for each domain 
+inside the NGINX default document root ( /var/www/html ).
+
+# ---------------------------------------------------------
+1. First, open your terminal and run the commands below 
+to create web directories for all domains and subdomains. 
+Doing so separates, organizes, and isolates files for each website.
+
+    sudo mkdir /var/www/html/awstutorial.net
+    sudo mkdir /var/www/html/web1.awstutorial.net
+    sudo mkdir /var/www/html/web2.awstutorial.net
+
+# ---------------------------------------------------------
+2. Next, run the chown command to recursively (-R) change 
+the ownership of each directory you created in step one 
+to www-data user and group. You’re changing ownership 
+of each directory to www-data user and group since 
+NGINX runs as a www-data user.
+
+    sudo chown -R www-data:www-data /var/www/html/awstutorial.net
+    sudo chown -R www-data:www-data /var/www/html/web1.awstutorial.net
+    sudo chown -R www-data:www-data /var/www/html/web2.awstutorial.net
+
+# ---------------------------------------------------------
+3. Create a file named index.html in your preferred code editor 
+and then copy/paste the code below to the index.html file. 
+Save the file inside your domains’ primary web directory 
+( /var/www/html/awstutorial.net ).
+
+The HTML code below displays a message that says 
+“Congratulations! The awstutorial.net website is working!” 
+when the index.html file is opened in a web browser.
+
+<html>
+    <head>
+      <title>Welcome to awstutorial.net!</title>
+  </head>
+      <body>
+        <h1>Congratulations! The awstutorial.net website is working!</h1>
+    </body>
+</html>
+
+# ---------------------------------------------------------
+4. Finally, create the same index.html in the directories:
+
+    /var/www/html/web1.awstutorial.net 
+    /var/www/html/web2.awstutorial.net 
+
+But replace awstutorial.net with web1.awstutorial.net, 
+and web2.awstutorial.net in the code of each index.html accordingly.
+
+# ---------------------------------------------------------
+Setting Up Virtual Host for NGINX Domain and Subdomains
+
+You already have an index.html page for your domain and 
+subdomains to serve through an NGINX web server. 
+The next step is you’ll create an NGINX virtual host 
+configuration file for each domain to serve the HTML pages.
+
+
+# ---------------------------------------------------------
+1. Create an NGINX virtual host configuration file named 
+awstutorial.net in your preferred code editor, and then 
+copy/paste the code below to that file. 
+Save the file in the /etc/nginx/sites-available/ directory.
+
+The code below controls the behavior of your server, 
+such as the server name and index (home) page when 
+a user tries to access your domain.
+
+server {
+        # Binds the TCP port 80.
+        listen 80; 
+
+                # Root directory used to search for a file
+        root /var/www/html/awstutorial.net;
+                # Defines the file to use as index page
+        index index.html index.htm;
+                # Defines the domain or subdomain name. 
+        # If no server_name is defined in a server block then 
+                # Nginx uses the 'empty' name
+        server_name awstutorial.net;
+
+        location / {
+            # Return a 404 error for instances when the server receives 
+                        # requests for untraceable files and directories.
+            try_files $uri $uri/ =404;
+        }
+    }
+
+
+Note: 
+   make sure to put semicolons ( ; ) 
+   at the end of config instructions lines
+# ---------------------------------------------------------
+2. Next, run the following nginx command to check (-t) the 
+NGINX configuration file for any syntax error.
+
+sudo nginx -t
+
+If no syntax error is found in the NGINX configuration file, 
+you will get the following output.
+
+Verifying NGINX configuration file
+
+# ---------------------------------------------------------
+3. Next, run the below command to create a symbolic link (ln -s) 
+from the /etc/nginx/sites-available 
+to the   /etc/nginx/sites-enabled/ directory. 
+
+This command enables the awstutorial.net virtual host configuration file.
+
+sudo ln -s /etc/nginx/sites-available/awstutorial.net /etc/nginx/sites-enabled/
+
+The sites-available and sites-enabled format are standard within 
+an NGINX Ubuntu installation but other distributions may 
+use a different standard.
+
+# ---------------------------------------------------------
+4. Repeat steps one to three to create NGINX virtual host 
+configuration files named 
+
+     web1.awstutorial.net
+     web2.awstutorial.net.
+
+Change the following lines in each NGINX virtual host configuration file:
+
+Replace the line root /var/www/html/awstutorial.net 
+with the webroot directory of each subdomain 
+  root /var/www/html/web1.awstutorial.net 
+  root /var/www/html/web2.awstutorial.net
+
+Replace the line server_name awstutorial.net with the name 
+of each subdomain 
+    server_name  web1.awstutorial.net
+    server_name  web2.awstutorial.net).
+
+# ---------------------------------------------------------
+5. Now run the sudo ln commands below as you did in step three 
+to enable the virtual host configuration files.
+
+# Enables web1.awstutorial.net NGINX virtual host configuration file
+sudo ln -s /etc/nginx/sites-available/web1.awstutorial.net /etc/nginx/sites-enabled/
+# Enables web2.awstutorial.net NGINX virtual host configuration file
+sudo ln -s /etc/nginx/sites-available/web2.awstutorial.net /etc/nginx/sites-enabled/
+
+# ---------------------------------------------------------
+6. Run the below systemctl command to restart the NGINX 
+(restart nginx) service to apply all configuration changes.
+
+sudo systemctl restart nginx
+
+# ---------------------------------------------------------
+7. Finally, navigate to the domain and subdomains’ URLs on 
+your browser to test if the websites work fine.
+
+If the domain and subdomains load up, you’ll see a message 
+like the one below.
+
+Verifying websites are loading through the web browser.
+
+# ---------------------------------------------------------
+Setting Up HTTPS on NGINX Domain and Subdomain
+
+You’ve successfully set up and tested an NGINX domain and 
+subdomains on HTTP protocol, which is great. 
+But you must secure your domain and subdomains’ connection 
+by enabling HTTPS. How? With a certificate that you’ll get 
+from a Certificate Authority like Let’s Encrypt SSL.
+
+# ---------------------------------------------------------
+1. First, run the command below to install the Certbot software 
+package (apt-get install certbot). Certbot lets you download 
+an SSL certificate for your domain and subdomains.
+
+sudo apt-get install certbot python3-certbot-nginx -y
+
+# ---------------------------------------------------------
+2. Next, run the certbot command below to download an SSL 
+certificate (certonly) for your domain (-d awstutorial.net). 
+Notice that you agree to the term of service (—agree-tos) 
+with your email address (—email).
+
+sudo certbot certonly --agree-tos --email myemail@email.com -d awstutorial.net
+
+Replace the email with your own.
+
+# ---------------------------------------------------------
+3. Enter ‘1’ to select the NGINX Web Server plugin (nginx) 
+to authenticate with the ACME CA, as shown below.
+
+Selecting Plugin to Authenticate with ACME CA 
+
+After selecting the NGINX Web Server plugin, you’ll see 
+the download progress of the SSL certificate for your 
+domain (awstutorial.net).
+
+By default, Let’s Encrypt’s SSL certificates are stored 
+in the directory /etc/letsencrypt/live/ .
+
+Showing Download Progress of the SSL Certificate
+
+# ---------------------------------------------------------
+4. Now run each command below as you did in step two to download 
+SSL certificates for the remaining subdomains 
+(web1.awstutorial.net and web2.awstutorial.net).
+
+sudo certbot certonly --agree-tos --email myemail@email.com -d web1.awstutorial.net
+sudo certbot certonly --agree-tos --email myemail@email.com -d web2.awstutorial.net
+
+# ---------------------------------------------------------
+5. Finally, run the ls command below to list all SSL certificates 
+in the directory /etc/letsencrypt/live/  
+that contain (*) the awstutorial.net in their names. 
+Doing so lets you verify that the SSL certificates exist.
+
+ls /etc/letsencrypt/live/*awstutorial.net/
+Below, you’ll see the SSL certificates for your domain and subdomains.
+
+Showing SSL certificate for all domains.
+
+# ---------------------------------------------------------
+Configuring NGINX Virtual Host to Use SSL Certificates
+At this point, you already have SSL certificates at your disposal. 
+But how do you use them to secure your domain and subdomains? 
+You’ll define the certificates’ path in the server block 
+of each NGINX virtual host configuration file.
+
+# ---------------------------------------------------------
+1. Open the awstutorial.net NGINX virtual host configuration 
+file sitting at the directory /etc/nginx/sites-available/  
+in your preferred code editor.
+
+# ---------------------------------------------------------
+2. Replace the content of the file with the code below, 
+where you define your domain’s SSL certificate’s path, 
+and SSL protocol (under Path of the SSL certificate).
+
+server {
+         # Binds the TCP port 80.
+       listen 80;
+         # Defines the domain or subdomain name. 
+       # If no server_name is defined in a server block then 
+         # Nginx uses the 'empty' name
+       server_name awstutorial.net;
+         # Redirect the traffic to the corresponding 
+         # HTTPS server block with status code 301
+       return 301 https://$host$request_uri;
+       }
+
+server {
+        # Binds the TCP port 443 and enable SSL.
+        listen 443 SSL;
+          # Root directory used to search for a file        
+          root /var/www/html/awstutorial.net; 
+          # Defines the domain or subdomain name. 
+        # If no server_name is defined in a server block then 
+          # Nginx uses the 'empty' name
+        server_name awstutorial.net;
+
+          # Path of the SSL certificate
+        ssl_certificate /etc/letsencrypt/live/awstutorial.net/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/awstutorial.net/privkey.pem;
+          # Use the file generated by certbot command.
+        include /etc/letsencrypt/options-ssl-nginx.conf;
+          # Define the path of the dhparam.pem file.
+        ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem;
+
+        location / {
+          # Return a 404 error for instances when the server receives 
+          # requests for untraceable files and directories.
+        try_files $uri $uri/ =404;
+        }
+
+    }
+
+# ---------------------------------------------------------
+3. Repeat the same process (steps one to two) for the 
+remaining virtual host configuration files 
+  ( web1.awstutorial.net and web2.awstutorial.net). 
+
+But be sure to replace the SSL certificate’s path with
+your subdomain’s certificate’s path 
+(under Path of the SSL certificate).
+
+# ---------------------------------------------------------
+4. Now rerun the systemctl command below to restart the 
+NGINX service to apply the configuration changes.
+
+sudo systemctl restart nginx
+
+# ---------------------------------------------------------
+5. Finally, navigate to your domain and subdomain’s URLs on 
+your web browser. But this time, instead of the HTTP protocol, 
+use HTTPS to see if they work.
+
+Below, you can see a padlock icon at the address bar, which 
+indicates the website is secure with your SSL certificate.
+
+Verifying Domain is Secure
+
+Conclusion
+
+In this tutorial, you’ve learned how to serve an NGINX subdomain 
+or multiple domains by configuring a virtual host configuration file. 
+You’ve also touched on securing your domains with an SSL certificate 
+that you also define in the virtual host configuration file.
+
+Now, why not use this setup in a production environment, 
+such as to host multiple apps on a single server, 
+and provide affordable web hosting?
+
+# ---------------------------------------------------------

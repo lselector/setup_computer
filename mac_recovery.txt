@@ -1,0 +1,10 @@
+
+Mac recovery, safe mode, etc.:
+
+Mac startup key combinations
+ - https://support.apple.com/en-us/HT201255
+
+Disable Device Enrollment Program (DEP):
+ - https://apple.stackexchange.com/questions/311052/why-do-i-get-a-remote-management-step-when-installing-high-sierra
+ - https://gist.github.com/henrik242/65d26a7deca30bdb9828e183809690bd
+ - https://gist.github.com/zipmegabyte/dfdad319864720304c144b19a92db2a6

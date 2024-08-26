@@ -1,0 +1,8 @@
+on Mac:
+
+Put directory "Uploads" with images 
+into directory:
+
+    $HOME/Library/Application Support/Microsoft/Teams/Backgrounds/Uploads
+
+

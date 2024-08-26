@@ -1,0 +1,84 @@
+If you want to install anaconda or miniconda:
+    https://www.anaconda.com/distribution/
+    https://docs.conda.io/en/latest/miniconda.html
+
+If possible, use the command-line installer (shell script)
+install in user's home directory
+
+Make sure to add directories at the beginning of the PATH, for example:
+    $HOME/miniconda3/condabin
+    $HOME/miniconda3/bin
+
+Conda y default activates the "base" environment.
+See how to work with conda environments here:
+  - https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
+
+To hide the environment (remove prefix from unix prompt)
+run these two commands:
+    conda config
+    conda config --set changeps1 False
+
+=====================================
+Alternatively you can download and install Python from the main python website:
+   https://www.python.org/downloads/
+
+It gets installed here (example):
+    /Library/Frameworks/Python.framework/Versions/3.12/bin/python3
+    /Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/
+
+If you install another version (for example 3.13),
+it will be installed like this:
+
+    /Library/Frameworks/Python.framework/Versions/3.13/bin/python3
+    /Library/Frameworks/Python.framework/Versions/3.13/lib/python3.13/site-packages/
+
+To select one of those environments you need to add 
+corresponding "bin" environment to the path.
+You can create two .bashrc files and switch like this:
+    alias p12='source ~/.bashrc12'
+    alias p13='source ~/.bashrc13'
+In these files you add path like this (example):
+    python_location=/Library/Frameworks/Python.framework/Versions/3.13/bin
+    PATH="${python_location}:${PATH}"
+
+If you have several versions, you can see them in
+     /Library/Frameworks/Python.framework/Versions : 
+
+        3.12/
+        3.13/
+        Current@ -> 3.12
+
+You can change the link like this:
+        sudo ln -snf 3.13 Current
+
+also do this:
+        cd /usr/local/bin
+        sudo ln -snf python3 python
+        sudo ln -snf python3.12 python3
+
+Also open the folder /Applications/Python 3.x (x is the version you are running).
+Double click the Install Certificates.command. 
+It will open a terminal and install the certificate.
+Repeat this twice.
+
+=====================================
+Installing modules:
+        pip install --upgrade pip
+        pip install -U -r python_requirements.txt
+
+=====================================
+Uninstalling old standard python
+On Mac - Finder > Applications - delete Python
+
+Then in terminal:
+
+cd /usr/local/bin
+fd -t l | grep python | xargs rm
+fd -t l | grep 2to3 | xargs rm
+fd -t l | grep idle3 | xargs rm
+fd -t l | grep pip3 | xargs rm
+fd -t l | grep pydoc3 | xargs rm
+sudo rm -rf /Library/Frameworks/Python.framework/Versions
+
+Then check PATH and PYTHONPATH env. vars
+=====================================

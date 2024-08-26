@@ -1,0 +1,178 @@
+
+Here is some software to install on MS Windows computer
+================================================
+NotePad++
+ - https://notepad-plus-plus.org/downloads/ 
+Sublime editor:
+ - https://www.sublimetext.com/download
+Ultraedit editor:
+ - https://www.ultraedit.com/
+Visual Studio Code:
+ - https://code.visualstudio.com/download
+ 
+================================================
+Python - 3 types on installs:
+
+Regular python: 
+ - https://www.python.org/downloads/
+Anaconda 64-bit Graphical installer:
+ - https://www.anaconda.com/products/individual#windows 
+Miniconda:
+ - https://docs.anaconda.com/miniconda/
+
+Below are docs for anaconda:
+
+Accurately follow instructions for installation: 
+ - https://docs.anaconda.com/anaconda/install/windows/ 
+
+Note: install it under your user directory (without admin permissions).
+Note: check the checkbox to update PATH
+      (by default it is not checked)
+Note: anaconda installation should add anaconda to your PATH
+      Check it in control panel
+      Open the Start Search, 
+          type in "env" 
+          choose Edit environment variables for your account
+
+Here are paths which are added to User Path:
+.;
+C:\Users\Youname\anaconda3;
+C:\Users\Youname\anaconda3\Library\mingw-w64\bin;
+C:\Users\Youname\anaconda3\Library\usr\bin;
+C:\Users\Youname\anaconda3\Library\bin;
+C:\Users\Youname\anaconda3\Scripts;
+C:\Users\Youname\AppData\Local\Microsoft\WindowsApps
+
+Note: you can also add custom PYTHONPATH variable
+      and popualte it as needed, for example:  
+          .;C:\\Users\\Youname\\py_lib
+
+try the following commands from cmd window
+
+echo %PATH%
+python --version
+where python
+python -c "import pandas as pd;print(pd.__file__)"
+where pip
+where ipython
+ipython --version
+
+ipython
+import pandas as pd
+pd.__file__
+
+================================================
+ipython - set up default profile in home directory
+
+cd C:\Users\Youname
+ipython profile create
+
+and add common startup files under
+    C:\Users\Youname\.ipython\profile_default\startup
+
+Download them from:
+ - https://github.com/lselector/setup_computer
+ - https://github.com/lselector/setup_computer/tree/master/ipython_startup
+
+Note: you will probably get Jupyter as part of anaconda python. 
+      Try starting using this command:
+          jupyter notebook
+
+      Here are separate instructions on how to install 
+      and start using the Jupyter notebook on Windows: 
+ - https://www.geeksforgeeks.org/how-to-install-jupyter-notebook-in-windows/ 
+
+VSCode is a very good editor to work with python and jupyter.
+ - https://code.visualstudio.com/download 
+ - https://code.visualstudio.com/docs/languages/python 
+ - https://code.visualstudio.com/docs/datascience/jupyter-notebooks
+
+================================================
+python launcher
+
+Python launcher py.exe is a separate executable.
+It doesn't come with anaconda python installation.
+It is an option you can select if you installing
+standard python as described here:
+
+ - https://docs.python.org/3/using/windows.html
+ - https://docs.python.org/3/using/windows.html#launcher
+
+It allows you to specify the version of python
+you want to use when running the script, 
+for example to run old script using python version 2.7 :
+
+   py -2.7 mytest.py
+
+I never use the launcher.
+I think in rare case when you need to have several 
+versions of python on the same computer 
+it is better (cleaner) to keep them in separate 
+virtual environments or containers.
+
+================================================
+Connecting to remote Linux Server via SSH
+
+Most common Windows application to connect to 
+remote unix server is called Putty.
+
+You can download it from here:
+   https://www.putty.org/
+
+Instructions on how to use it is here:
+   https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html
+
+Note:
+When you create a Linux VM in AWS or Azure, you will
+get a private key as a file with extension "pem".
+Putty and most other Windows apps can not use PEM format.
+
+Putty needs a file in format "ppk" (Putty Private Key).
+You can convert PEM to PPK using "PuTTYgen"
+    https://aws.amazon.com/premiumsupport/knowledge-center/ec2-ppk-pem-conversion/
+
+Usually it is a good idea to create a directory ".ssh"
+under your home directory - and keep your keys there.
+
+Note:
+It should be also possible to connect via ssh command from terminal.
+For example, using "Git Bash" terminal which comes as part
+of downloading Git for Windows:
+  - https://git-scm.com/downloads
+
+================================================
+MS SQL Server - there is a FREE version here:
+ - https://www.microsoft.com/en-us/sql-server/sql-server-downloads
+
+MS SQL Server Management Studio
+ - https://docs.microsoft.com/en-us/sql/ssms/download-sql-server-management-studio-ssms?view=sql-server-ver15 
+
+Azure Data Studio
+ - https://docs.microsoft.com/en-us/sql/azure-data-studio/download-azure-data-studio?view=sql-server-ver15 
+
+Azure Storage Explorer
+ - https://azure.microsoft.com/en-us/features/storage-explorer/
+
+Azure azcopy utility
+ - https://docs.microsoft.com/en-us/azure/storage/common/storage-use-azcopy-v10#download-azcopy
+ - https://docs.microsoft.com/en-us/azure/storage/common/storage-ref-azcopy-copy
+
+Azure CLI (Command Line Interface):
+ - https://docs.microsoft.com/en-us/cli/azure/install-azure-cli
+
+================================================
+Work with SQL server from Jupyter notebook:
+ - https://www.sqlshack.com/learn-jupyter-notebooks-for-sql-server/ 
+
+================================================
+Power BI desktop
+ - https://powerbi.microsoft.com/en-us/downloads/ 
+
+================================================
+PySpark:
+ - https://spark.apache.org/docs/latest/api/python/getting_started/install.html 
+ - https://bigdata-madesimple.com/guide-to-install-spark-and-use-pyspark-from-jupyter-in-windows/
+ - https://medium.com/analytics-vidhya/installing-and-using-pyspark-on-windows-machine-59c2d64af76e 
+ - https://sparkbyexamples.com/pyspark/how-to-install-and-run-pyspark-on-windows/ 
+
+================================================

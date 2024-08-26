@@ -1,0 +1,47 @@
+#---------------------------------------------------------------------------------------
+# .bashrc for local machine only
+#---------------------------------------------------------------------------------------
+export PYTHONDONTWRITEBYTECODE=1
+export PROMPT_COMMAND='PS1_PATH=$(sed "s:\([^/\.]\)[^/]*/:\1/:g" <<< ${PWD/#$HOME/\~})'
+export PS1='\u@\h:$PS1_PATH\$ '
+#---------------------------------------------------------------------------------------
+export OS='Linux'
+#---------------------------------------------------------------------------------------
+if [ -f $HOME/.bash_aliases ] ;
+then
+    source $HOME/.bash_aliases
+fi
+export SSHDIR=$HOME/.ssh
+export HISTSIZE=10000
+export HISTFILESIZE=10000
+export PATH="/data/code/misc/bin:$PATH"
+export PYTHONPATH=".:/data/code/misc/py_lib"
+#---------------------------------------------------------------------------------------
+# avoid activating conda environments
+# conda config --set auto_activate_base false
+#---------------------------------------------------------------------------------------
+if [ -f $HOME/.myvv ] ;
+then
+    source $HOME/.myvv
+fi
+#---------------------------------------------------------------------------------------
+if [ -f $HOME/.mygit ] ;
+then
+    source $HOME/.mygit
+fi
+#---------------------------------------------------------------------------------------
+# >>> conda initialize >>>
+# !! Contents within this block are managed by 'conda init' !!
+__conda_setup="$('/data/miniconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+if [ $? -eq 0 ]; then
+    eval "$__conda_setup"
+else
+    if [ -f "/data/miniconda3/etc/profile.d/conda.sh" ]; then
+        . "/data/miniconda3/etc/profile.d/conda.sh"
+    else
+        export PATH="/data/miniconda3/bin:$PATH"
+    fi
+fi
+unset __conda_setup
+# <<< conda initialize <<<
+#---------------------------------------------------------------------------------------

@@ -1,0 +1,6 @@
+by default anaconda installation auto-activates (base) environment.
+If you are not using it, you can rn these commands to not activate it:
+
+	conda config --set changeps1 False
+	conda config --set auto_activate_base False
+

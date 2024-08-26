@@ -1,0 +1,46 @@
+
+Installing mysql on mac is easy.
+Just google for it.
+
+https://dev.mysql.com/downloads/mysql/
+
+   (for M1 chip select the ARM version)
+
+I have old intel-based Mac - so I installed this:
+    Installed mysql-8.0.28-macos11-x86_64.dmg
+
+Set up root password during the installation.
+
+Or like this (from terminal):
+    mysqladmin -u root password YOURNEWPASSWORD
+
+Add the root password into config file in your home directory:
+
+vi ~/.my.cnf
+
+[mysql]
+user=root
+password=YOURNEWPASSWORD
+
+save - and change permissions:
+chmod 0600 .my.cnf
+
+edit ~/.bashrc - add path to mysql executables like this:
+
+PATH=$PATH:/usr/local/mysql/bin
+
+Restart terminal.
+Now you can start mysql prompt with "mysql" command
+
+Once on mysql prompt:
+
+show databases;
+create database testdb;
+use testdb;
+create table t1 ( i1 int null, c1 varchar(80) null );
+show tables;
+insert into t1 values (1,'a');
+insert into t1 values (2,'b');
+select * from t1;
+exit
+

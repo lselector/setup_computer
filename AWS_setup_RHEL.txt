@@ -1,0 +1,473 @@
+# --------------------------------------------------------------
+2017
+Setting up EC2 RHEL Linux server on AWS (Amazon Web Services)
+# --------------------------------------------------------------
+
+Go to Amazon Web Services website and create an account:
+
+    https://aws.amazon.com
+
+Then create a new free EC2 instance (for example, Linux RHEL).
+Note:
+  If you creating an instance from an image:
+    in your browser aws console EC2 dashboard 
+    click on IMAGES AMIs on the left 
+    select an image you want to clone
+    press on Actions - and select "Launch" - and follow the screens.
+
+Then follow directions to generate and download 
+the private key file (with extension .pem)
+
+On your side in terminal window put it like this:
+   ~/.ssh/lev01.pem
+chmod 400 ev01.pem
+
+# --------------------------------------------------------------
+Then in browser in EC2 management console edit corresponding
+security group to have two rules like this:
+Type                Protocol     Port Range   Source
+Custom TCP Rule      TCP            0-100      Anywhere (0.0.0.0/0)
+Custom ICMP Rule     Echo Request   N/A        Anywhere (0.0.0.0/0)
+
+Also copy the external public IP of the instance, for example 54.201.44.115
+
+In terminal on your side try this:
+
+ssh -i ~/.ssh/lev01.pem  ec2-user@54.201.44.115
+
+Ideally this will login you into the instance.
+If not - google how to troubleshoot.
+
+create alias:
+alias aws1='ssh -i ~/.ssh/lev01.pem  ec2-user@54.201.44.115'
+
+# --------------------------------------------------------------
+Note - if you have an EBS storage attached to the instance, 
+you may need to initialize it using these instructions:
+   http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/ebs-using-volumes.html
+Here is my sequence of commands:
+# --------------------------------------------------------------
+# view the block devices
+lsblk
+NAME    MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+xvda    202:0    0   10G  0 disk 
++-xvda1 202:1    0    1M  0 part 
++-xvda2 202:2    0   10G  0 part /
+xvdb    202:16   0  3.9T  0 disk 
+
+# ---------------------------------------------------------------
+# become a root for all mounting operations
+sudo su -
+
+# ---------------------------------------------------------------
+# the "xvdb" is an additional EBS storage (3.9 TB) which I need to mount.
+# Check if the file sistem is set up (if it is simply "data" - means no file system yet)
+file -s /dev/xvdb
+
+/dev/xvdb: data
+# or
+/dev/xvdb: Linux rev 1.0 ext4 filesystem data, UUID=1c62e973-132c-40f6-a1a6-a84a9c94147d (extents) (64bit) (large files) (huge files)
+
+# ---------------------------------------------------------------
+# If the output of "file -s" was "data", then we need to
+# create an ext4 file system
+# (note - if the file system was already there, then this
+#  command will change its UUID)
+mkfs -t ext4 /dev/xvdb
+
+# ---------------------------------------------------------------
+Check if the file sistem is there, and get the UUID for device name:
+file -s /dev/xvdb
+
+/dev/xvdb: Linux rev 1.0 ext4 filesystem data, UUID=2edff00f-6f16-4a80-838e-7d03bd125498 (needs journal recovery) (extents) (64bit) (large files) (huge files)
+or
+/dev/xvdb: Linux rev 1.0 ext4 filesystem data, UUID=1c62e973-132c-40f6-a1a6-a84a9c94147d (extents) (64bit) (large files) (huge files)
+
+# ---------------------------------------------------------------
+# create a directory - and mount file system to it
+
+mkdir /data1
+mount /dev/xvdb /data1
+chmod 777 /data1
+
+# ---------------------------------------------------------------
+# add entry to -remount on reboot:
+cp /etc/fstab /etc/fstab.orig
+vi /etc/fstab
+# add a new line to the end of the file like this
+# device_name                                 mount_point  file_system_type  fs_mntops          fs_freq  fs_passno  
+
+UUID=2edff00f-6f16-4a80-838e-7d03bd125498     /data1     ext4              defaults,nofail      0        2
+# or
+UUID=1c62e973-132c-40f6-a1a6-a84a9c94147d     /data1     ext4              defaults,nofail      0        2
+
+# to check, run this command:
+mount -a
+
+# ---------------------------------------------------------------
+# add swap space
+
+sudo su -
+cd /data1
+
+# if file myswap pre-existed and swap was on - remove it first
+swapoff -a
+rm -rf /data1/myswap
+
+# now create a swap file "myswap", and turn on swapping
+fallocate -l 64G myswap
+chown root:root myswap
+chmod 0600 myswap
+mkswap /data1/myswap  # this command gives UUID
+swapon /data1/myswap
+
+# To make it enable on system boot, simply edit /etc/fstab file :
+
+cp /etc/fstab /etc/fstab.orig2
+vi /etc/fstab
+
+# and add following entry at end of file.
+
+/data1/myswap                            swap         swap    defaults        0 0
+
+# ---------------------------------------------------------------
+Below are software installation instructions.
+You do it when you configure the box first time.
+You don't need to do it when you created instanceform an image
+  where all software was already installed.
+You may need to do parts of this when you do software upgrades.
+# ---------------------------------------------------------------
+Once in the EC2 instance on the prompt:
+
+sudo yum install wget
+sudo yum install gcc
+sudo yum install bzip2
+sudo yum install zip
+sudo yum install dos2unix
+sudo yum install coreutils
+sudo yum install mailx
+
+cd ~/Downloads
+wget https://dl.fedoraproject.org/pub/epel/7/x86_64/e/epel-release-7-8.noarch.rpm
+sudo yum install epel-release-7-8.noarch.rpm 
+sudo yum install htop
+
+# ---------------------------------------
+get link to appropriate anaconda distribution on continuum website
+curl -O https://repo.continuum.io/archive/Anaconda2-4.2.0-Linux-x86_64.sh
+bash Anaconda2-4.2.0-Linux-x86_64.sh
+
+relogin - and check python:
+which python
+which ipython
+conda update conda
+conda update anaconda
+pip install eventlet
+
+Note: you may need to upgrade to latest versions:
+  pip install --upgrade greenlet
+  pip install --upgrade eventlet
+  pip install --upgrade PySocks
+  pip install --upgrade requests
+
+export ppp='pip install -vv --index  https://pypi.python.org/pypi'
+which pip
+$ppp html2text
+$ppp sqlparse
+$ppp treelib
+$ppp mock
+conda install -c anaconda requests
+pip install requests[socks]
+pip install PySocks
+
+ipython profile create
+
+# ---------------------------
+mkdir ~/myproj
+mkdir ~/myproj/py_lib
+mkdir ~/myproj/py_lib/examples
+mkdir ~/myproj/py_lib/examples/tt_scrape
+
+# --------------------------------------
+export scpath="myproj/py_lib/examples/tt_scrape"
+export diraws="/home/ec2-user/$scpath"
+export dirloc="$HOME/$scpath"
+
+export aws1ip='54.123.123.123'
+export aws2ip='54.123.123.123'
+export aws3ip='35.123.123.123'
+
+alias sc='cd ~/myproj/py_lib/examples/tt_scrape'
+alias aws1="ssh -i $HOME/.ssh/lev01.pem  ec2-user@$aws1ip"
+alias aws2="ssh -i $HOME/.ssh/lev01.pem  ec2-user@$aws2ip"
+alias aws3="ssh -i $HOME/.ssh/lev03.pem  ec2-user@$aws3ip"
+
+export scp1="scp -i $HOME/.ssh/lev01.pem"
+export scp21="ec2-user@$aws1ip"
+export scp22="ec2-user@$aws2ip"
+export scp23="ec2-user@$aws3ip"
+# --------------------------------------
+cd $dirloc
+$scp1  *.py         $scp2:$diraws/
+$scp1  proxies.txt  $scp2:$diraws/
+$scp1  -r test*     $scp2:$diraws/
+$scp1  -r files*    $scp2:$diraws/
+mydir=$HOME/.ipython/profile_default/startup
+$scp1   $mydir/*    $scp2:$mydir/
+mydir=$HOME/myproj/py_lib
+$scp1   $mydir/*.py $scp2:$mydir/
+
+# ---------------------------
+# Then fix .bashrc on aws:
+
+export PATH="/home/ec2-user/anaconda/bin:$PATH"
+export PS1='\u:\w > '
+export PYTHONDONTWRITEBYTECODE=1
+export PYTHONPATH=$(dirname $(which python3)):~/lib:~/myproj/py_lib
+alias sc='cd ~/myproj/py_lib/examples/tt_scrape'
+alias ii=ipython
+alias ltop='htop -u ec2-user'
+
+# ---------------------------------------
+yum install postgresql-server
+postgresql-setup initdb
+systemctl enable postgresql.service 
+systemctl start postgresql.service
+# for restart: sudo service postgresql restart
+# ps auxww: /usr/bin/postgres -D /var/lib/pgsql/data -p 5432
+# 
+# switch to postgres unix user:
+sudo su - postgres
+
+# edit file pg_hba at the bottom - change host connections to password mode
+
+vi /var/lib/pgsql/data/pg_hba.conf
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+local   all             all                                     ident
+host    all             all             127.0.0.1/32            password
+host    all             all             ::1/128                 password
+
+# start psql client
+psql
+  create database amz;
+  create user lev01 with superuser createdb createrole login replication password 'something';
+  \du       -- to show users
+  \c amz
+  create table tab1 (col1 int);
+  \d
+  \d tab1
+  \q
+
+# now try to connect to the database using regular connect command:
+psql -U lev01 -h localhost -d amz
+
+# ---------------------------------------
+# install pyodbc
+conda install -c anaconda pyodbc
+conda install -c anaconda psqlodbc
+conda install -c anaconda psycopg2
+
+# now we have 
+    ~/anaconda2/lib/libodbc.so
+    ~/anaconda2/lib/psqlodbcw.so
+    etc.
+
+# this python test should work:
+
+import psycopg2
+conn = psycopg2.connect(database='amz', host='localhost', user='lev01', password='lifeisgood')
+cur = conn.cursor()
+cur.execute("DROP TABLE IF EXISTS test1")
+cur.execute("""CREATE TABLE test1 (
+        id          serial PRIMARY KEY,
+        col1        varchar(2056)
+        col2        varchar(128)
+    );""")
+conn.commit()
+cur.execute("INSERT INTO test1 (col1, col2) VALUES (%s, %s) RETURNING id", ('mama','papa'))
+conn.commit()
+myid = cur.fetchone()[0]
+print myid
+
+cur.execute("""SELECT * from test1""")
+rows = cur.fetchall()
+print rows
+conn.commit()
+
+# cur.execute("""SELECT 123 as aa, 'mama' as bb""")
+# rows = cur.fetchall()
+# print rows
+
+# ---------------------------------------
+Redis
+http://redis.io/topics/quickstart
+http://linoxide.com/storage/install-redis-server-centos-7/
+
+cd ~/Downloads
+wget http://download.redis.io/releases/redis-3.2.4.tar.gz
+tar zxvf redis-3.2.4.tar.gz
+cd redis-3.2.4
+make
+make test
+cd src
+sudo cp redis-server redis-cli /usr/local/bin
+sudo cp redis-sentinel redis-benchmark redis-check-aof redis-check-dump /usr/local/bin
+sudo mkdir /etc/redis
+sudo mkdir -p /var/lib/redis/6379
+sudo sysctl -w vm.overcommit_memory=1
+sudo sysctl -w net.core.somaxconn=512
+sudo cp redis.conf /etc/redis/6379.conf
+sudo vi /etc/redis/6379.conf
+    daemonize no
+    pidfile /var/run/redis_6379.pid
+    port 6379
+    loglevel notice
+    logfile /var/log/redis_6379.log
+    dir /var/lib/redis/6379
+    unixsocket /tmp/redis.sock
+    unixsocketperm 700
+    save 900 1
+    save 300 10
+    save 60 10000
+
+Note:
+  for some reason on reboot the redis server starts and then
+  immediately shuts down as described here:
+  - http://serverfault.com/questions/616430/why-isnt-systemctl-starting-redis-server-on-centos-7
+  The fix doesn't work.
+  So I ended up making a separate script to start it manually after reboot.
+
+Note: I commented out "requirepass" directive in config file
+    # requirepass ""
+
+# -----------------
+Note: I thought that as we have defined unixsocket /tmp/redis.sock,
+      we should specify it like this:
+            redis-cli -s /tmp/redis.sock
+      But actually redis-cli works without specifying this file.
+
+# -----------------
+Note: I didn't do the rename commands (useful for security when you have many users)
+    -   rename-command FLUSHDB "FLUSHDB_MY_SALT_G0ES_HERE09u09u"
+    -   rename-command FLUSHALL ""
+    -   rename-command CONFIG "CONFIG_MY_S4LT_GO3S_HERE09u09u"
+
+# for auto-start on reboot:
+sudo cp utils/redis_init_script /etc/init.d/redis_6379
+
+# now create a new file
+sudo vi /etc/systemd/system/redis_6379.service
+    [Unit]
+    Description=Redis on port 6379
+    
+    [Service]
+    Type=forking
+    ExecStart=/etc/init.d/redis_6379 start
+    ExecStop=/etc/init.d/redis_6379 stop
+    
+    [Install]
+    WantedBy=multi-user.target
+
+Also add two overriding values in sysctl.conf file:
+sudo vi /etc/sysctl.conf
+    vm.overcommit_memory = 1
+    net.core.somaxconn=512
+
+
+sudo systemctl enable redis_6379.service
+
+# -----------------
+Note: I also tried this (improve performance):
+        sudo echo never > /sys/kernel/mm/transparent_hugepage/enabled
+      but this command didn't work on AWS.
+      And because of this, the redis server was shutting down on reboot.
+      I found and implemented this solution:
+      - http://serverfault.com/questions/688392/disable-thp-and-thp-defrag-on-centos-7-ec2-instance
+      which involves:
+        sudo su -
+        mkdir /etc/tuned/custom
+        vi /etc/tuned/custom/tuned.conf
+        vi /etc/tuned/custom/script.sh
+        chmod 755 /etc/tuned/custom/script.sh
+        tuned-adm profile custom
+        
+      I have also edited:
+         vi /etc/rc.local
+         vi /etc/default/grub  
+
+# -----------------
+# ok, start redis server:
+
+nohup sudo /etc/init.d/redis_6379 start 1>/dev/null 2>&1 &
+# to stop:
+sudo /etc/init.d/redis_6379 stop
+ 
+redis-cli
+   ping
+   set mykey somevalue
+   get mykey
+   exit
+
+# ---------------------------
+Now make Redis work from inside python:
+
+conda install -c anaconda redis
+
+import redis
+rd = redis.StrictRedis(host="localhost", port=6379, db=0)
+ret = rd.sadd("listing_url_queue","mama")
+val = rd.spop("listing_url_queue")
+print val
+
+# --------------------------------------------------------------
+AWS Command Line Interface
+
+aws cli
+
+Download installer for your platform here:
+   http://docs.aws.amazon.com/cli/latest/userguide/installing.html
+
+For example, for unix or mac:
+   http://docs.aws.amazon.com/cli/latest/userguide/installing.html#install-bundle-other-os
+
+Download this file:
+  https://s3.amazonaws.com/aws-cli/awscli-bundle.zip
+unzip, you will get a directory "awscli-bundle"
+which contains the "install" python script and subdirectory "packages".
+In the terminal window (on unix prompt) go into this directory 
+and run the "install" python script.
+
+It will probably install "aws" python script here:
+   $HOME/.local/lib/aws/bin/aws
+Add this location to PATH:
+   export PATH=$PATH:$HOME/.local/lib/aws/bin
+
+Now this command should work:
+   aws help
+
+To execute aws commands you will need to connect to web interface.
+For this you need two keys:
+   AWS Access Key ID
+   AWS Secret Access Key
+
+Follow instructions here to get them
+  http://docs.aws.amazon.com/general/latest/gr/managing-aws-access-keys.html
+
+Now run this command:
+  aws configure
+and enter the two keys, press enter for the other two questions.
+
+AWS Access Key ID:
+AWS Secret Access Key:
+Default region name [None]: 
+Default output format [None]:
+
+Now try this:
+  aws --region=us-west-2 ec2 describe-instances
+
+You should get a JSON output back.
+Note: to find which region to use, go in browser into
+instances management, select an instance - and see the details pande 
+at the bottom of the screen.
+# --------------------------------------------------------------

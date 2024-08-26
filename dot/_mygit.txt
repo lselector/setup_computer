@@ -1,0 +1,34 @@
+# .mygit
+
+# note - Git also automatically reads the ~/.gitconfig file.
+
+# --------------------------------------------------------------
+if [ -f ~/.git-completion.bash ]; then
+    . ~/.git-completion.bash
+fi
+
+# --------------------------------------------------------------
+# gist and gitup were moved from here into small bash scripts in "bin" directory in path
+
+# --------------------------------------------------------------
+function gd2 {
+  # accepts 1 file as a parameter
+  # shows diff between my dir and remote repository
+  git fetch; git show origin/master:./$1 > ./$1.prev
+  vimdiff ./$1.prev ./$1 
+  /bin/rm -f ./$1.prev
+}
+
+# --------------------------------------------------------------
+function gd {
+  # accepts 1 file as a parameter
+  # shows diff between my dir and remote repository
+  # ignores white-space differences 
+  git fetch; git show origin/master:./$1 > ./$1.prev
+  vimdiff -c 'syntax off' ./$1.prev ./$1 
+  /bin/rm -f ./$1.prev
+}
+
+alias gd12='git diff --name-only --cached'                     # staged, but not committed
+alias gd13='git fetch;git diff --name-only origin/master'      # staged or committed - but not pushed
+alias gd23='git fetch;git diff --name-only HEAD origin/master' # committed - but not pushed

@@ -1,0 +1,182 @@
+Initial installation
+.. User account, password, 
+.. WiFi, fingerprint,
+.. iCloud Account
+.. Finder - show extensions, creates $HOME/docs directory as default,
+            don't show tags, show home directory, ...
+.. trackpad settings - turn off the "Force Click and haptic feedback"
+.. battery - show percentage
+.. clock - show seconds
+.. Google Chrome - https://www.google.com/chrome/
+.. iTerm2 - https://www.iterm2.com/
+.. chsh -s /bin/bash 
+.. Sublime Text - text editor - https://www.sublimetext.com/3
+   sudo ln -s "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl" /usr/local/bin/subl
+.. Visual Studio Code - https://code.visualstudio.com/download
+  sudo ln -s '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code' /usr/local/bin/code
+.. install .bashrc and other env fiels from "dot" directory
+========================================================
+Download this repo as zip, unzip:
+ .. https://github.com/lselector/setup_computer
+========================================================
+Windows Manager:
+.. BetterSnapTool $2.99
+   https://itunes.apple.com/us/app/bettersnaptool/id417375580?mt=12
+.. Spectacle - move and resize windows - https://www.spectacleapp.com/
+   See in this directory  Spectacle.zip, download, unzip, put in Applications
+.. Rectangle:
+   - https://rectangleapp.com
+   - https://www.youtube.com/watch?v=AaZiA43Jm90
+.. Magnet $4.99:
+   - https://magnet.crowdcafe.com/
+   - https://www.youtube.com/watch?v=u_Tt4Zl-oQA
+ ========================================================
+Free software 
+.. Blackmagic Disk Speed Test
+   https://itunes.apple.com/us/app/blackmagic-disk-speed-test/id425264550?mt=12
+.. Firefox - https://www.mozilla.org/en-US/firefox/mac/
+.. Bitwarden - https://bitwarden.com/
+.. Battery Health (or paid version 2 or 3) from FIBLAB - show battery health 
+   https://fiplab.com/apps/battery-health-3-for-mac
+   https://itunes.apple.com/us/app/battery-health-2-stats-info/id1120214373?mt=12
+.. VLC Video Player - https://www.videolan.org/vlc/download-macosx.html
+.. Adobe Acrobat Reader -    https://get.adobe.com/reader/
+.. Malwarebytes Antimalware
+========================================================
+Commercial Software
+.. MS Office, MS Teams, OneDrive
+.. Memory Clean $9.99
+   https://fiplab.com/apps/memory-clean-for-mac
+.. PDF Expert ~$75/year
+.. Bartender
+   https://www.macbartender.com
+========================================================
+Free software - more
+.. Kdenlive Video Editor - https://kdenlive.org/en/download/
+.. Scroll Reverser - tune scrolling direction for mouse vs trackpad
+   https://pilotmoon.com/scrollreverser/
+.. SeaMonkey - HTML Editor
+   http://www.seamonkey-project.org/releases/
+.. FreeSpace $0.99
+   https://itunes.apple.com/us/app/freespace/id457520846?mt=12
+=====================================
+Install python
+  look in "python_install.txt" in the same directory
+=====================================
+Install Command Line Tools (needed for "brew")
+Google for: 
+  how to install Command Line Tools macOS
+You will find something like this:
+  http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
+  https://macpaw.com/how-to/install-command-line-tools
+Basically you should run this command:
+     xcode-select --install
+=====================================
+Homebrew:
+  https://brew.sh/
+
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+Note: if you are getting error "Permission denied @rb_file_s_symlink"
+then run command:
+   sudo chown -R $(whoami) $(brew --prefix)/*
+
+brew install htop wget grep vim git fd
+brew install ffmpeg fzf ripgrep bat exa neovim
+brew install coreutils
+brew install diffutils
+
+htop - to show CPU and memory usage
+wget - to download things 
+grep - to filter through files or listings
+vim  - text editor
+git  - version control
+fd   - a replacement to find command
+ffmpeg - video/audio converter/extractor
+fzf  - interactively filter its input
+ripgrep (rg) - replacement to grep
+bat - replacement to cat with colors
+exa - replacement to ls
+neovim - better vim
+
+https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/
+
+# ----------------------------------------------
+"htop" needs root access.
+To stop it asking for root password every time, you can do this:
+
+sudo vi /etc/sudoers
+
+root        ALL = (ALL) ALL
+%admin      ALL = (ALL) ALL
+myuser ALL = (ALL) ALL
+myuser ALL = NOPASSWD: /usr/local/bin/htop
+# ----------------------------------------------
+Also optional:
+brew install imagemagick
+# this install many commands (like "convert") - you can see the list:
+    ls -alF /usr/local/bin | grep imagemagick 
+# Example of mas conversion of images:
+    for file in *.jpg; do convert $file -resize 50% small_${file}; done
+# ----------------------------------------------
+brew install cask
+brew install youtube-dl
+brew search --casks
+# ----------------------------------------------
+Note: alternative to homebrew is macports
+Download the app from here: https://www.macports.org/
+Then in terminal use the "port" command:
+    sudo port install htop
+    sudo port install fd
+=====================================
+After all software installed, configure:
+  Apple scripts in Finder toolbar
+  ipython startup files and config changes
+=====================================
+=====================================
+=====================================
+=====================================
+=====================================
+=====================================
+=====================================
+=====================================
+=====================================
+# Commercial Software optional
+# BBEdit $49.99 https://www.barebones.com/store/download.html
+# UltraEdit for Mac $99.95 https://www.ultraedit.com/products/mac-text-editor/
+# DeltaWalker for Mac $59.95 (compare files / directores) https://www.deltawalker.com/
+# DaisyDisk $9.99 https://itunes.apple.com/us/app/daisydisk/id411643860?mt=12
+# Alfred - hotkeys - search, keywords, text expansion https://www.alfredapp.com/
+========================================================
+# MySQL:
+#   - install MySQL community edition from https://dev.mysql.com/downloads/mysql/ 
+#   - install MySQL WorkBench community edition from https://dev.mysql.com/downloads/workbench/
+=====================================
+# Recording part of the screen: Uberlayer or Overlay:
+#   https://github.com/jankeesvw/uberlayer
+#   https://apps.apple.com/hu/app/overlay/id653092846?mt=12
+# Pandoc - convert html to docx, etc. - https://pandoc.org/
+# FileZilla - FTP app - https://filezilla-project.org/download.php?platform=osx
+# WiFi Explorer Lite - https://itunes.apple.com/us/app/wifi-explorer-lite/id1408727408?mt=12
+=====================================
+# Oceanaudio - audio edit/convert - http://www.ocenaudio.com/
+# OpenShot Video Editor - https://www.openshot.org/
+# MediaHuman Audio Converter - https://www.mediahuman.com/audio-converter/
+# Tag Stripper (for audio) - https://www.markvapps.com/tagstripper
+=====================================
+# Some other tools I like:
+#   Alfred
+#   Ghost Reader Plus - convert text to Audio
+#   GitHub Desktop
+#   Splashtop Business - manage remote computers
+#   Apple Store app "Draw on My Screen EZ"
+#   Adobe Photoshop & Illustrator
+#   MacX DVD Video Converter Pro Pack - convert video to video or audio
+#   EpuborAudibleConverter - convert audio books into mp3
+#   EPUB Converter.app - convert electronic books into txt or PDF
+#   NordVPN IKE.app - VPN
+#   PingPlotter.app - trace network problems
+=====================================
+# More good software: https://www.youtube.com/watch?v=ROIMJ-M21gM&t=622s
+=====================================
+

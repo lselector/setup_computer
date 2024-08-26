@@ -1,0 +1,44 @@
+To mount the Z-drive you need to run the following command:
+
+sudo mount -t cifs //ds4win.file.core.windows.net/sourcekey /mnt/ds4win -o nofail,vers=3.0,credentials=/etc/smbcredentials/ds4win.cred,dir_mode=0777,file_mode=0777,serverino
+
+Corresponding entry should exist in /etc/fstab file,
+so that the Z-drive should auto-mount on reboot
+
+You can check the status of all mounts by running this command:
+
+sudo mount -fav
+
+====================================================
+Here are the steps Lev Selector has done on February 23, 2022:
+
+cd /etc
+sudo mkdir smbcredentials
+cd smbcredentials
+
+#  created credentials file:
+
+/etc/smbcredentials/ds4win.cred - file with credentials. It has two lines:
+
+username=ds4win
+password=very+long+password+here==
+
+# set permissions
+chmod 600 ds4win.cred
+
+# Note - the username and password came from script /data/ndr/misc/mount_ds4win.bash
+
+====================================================
+I have mounted the disk by running this command:
+
+sudo mount -t cifs //ds4win.file.core.windows.net/sourcekey /mnt/ds4win -o nofail,vers=3.0,credentials=/etc/smbcredentials/ds4win.cred,dir_mode=0777,file_mode=0777,serverino
+
+====================================================
+and I have also added this line into /etc/fstab to auto-mount on reboot:
+
+//ds4win.file.core.windows.net/sourcekey /mnt/ds4win cifs nofail,vers=3.0,credentials=/etc/smbcredentials/ds4win.cred,dir_mode=0777,file_mode=0777,serverino
+
+====================================================
+Check the fstab file without rebooting:
+
+sudo mount -fav

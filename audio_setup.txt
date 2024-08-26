@@ -1,0 +1,29 @@
+
+Here are a couple of videos explaining how to do a set up to 
+record sound coming from Mac and/or from microphone:
+
+Gary: iShowU + Audio Midi Setup app
+ - https://www.youtube.com/watch?v=syIViCzpsqU
+
+Tario: BlackHole + Audio Midi Setup app
+ - https://www.youtube.com/watch?v=K7UE8fZjox4
+ - https://www.youtube.com/watch?v=LSmM5FXzVBg
+ - https://github.com/ExistentialAudio/BlackHole 
+
+Note: Audio Midi Setupr.app is under Applications/Utilities.
+It can be used to add/configure/remove audio devices.
+======================================================
+To remove BoomDevice:
+sudo kextunload -b com.globaldelight.driver.BoomDevice
+======================================================
+
+ScreenFlow - very good recording/editing software.
+Has its own driver for recording screen audio
+https://www.telestream.net/screenflow/overview.htm
+
+======================================================
+OBS Studio
+OBS = Open Broadcaster Software
+https://obsproject.com/
+
+======================================================

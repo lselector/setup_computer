@@ -1,0 +1,119 @@
+
+The memory is probably mostly taken by big DataFrames.
+You can use the following functions to help you see the memory usage.
+
+# --------------------------------------------------------------
+def df_memory(df):
+    """
+    # returns memory usage of pandas DataFrame "df" in MB
+    # Example of usage:
+    #   print(f"mydf1 size = {df_memory(mydf1)} MB")
+    """
+    return df.memory_usage(deep=True).sum()/1024.0/1024.0
+
+# --------------------------------------------------------------
+def get_all_names():
+    """
+    # returns sorted list of all variables in your code
+    """
+    return sorted(set(list(globals().keys()) + list(locals().keys()) + list(dir())))
+
+# --------------------------------------------------------------
+def print_df_memory():
+    """
+    # prints memory usage by DataFrames
+    """
+    total_MB = 0
+    all_my_vars = get_all_names()
+    for var_name in all_my_vars:
+        myvar = eval(var_name)
+        if 'DataFrame' in str(type(myvar)):
+            df_mem = df_memory(myvar)
+            total_MB += df_mem
+            print(f"{var_name:14s} => {df_mem:,.2f} MB")
+    print('-'*20)
+    print(f"Total DataFrames' memory {total_MB:,.2f} MB")
+
+# --------------------------------------------------------------
+Note:
+  The above approach only works for DataFrames which
+  are NOT a part of a container (bag, list, dict, etc.)
+
+  If you created a container with DataFrames, you need
+  to go through elements of this container, for example:
+
+# dictionary with DataFrames
+for kk in sorted(mydict.keys()):
+    myvar = eval(mydict[kk])
+    if 'DataFrame' in str(type(myvar)):
+        df_mem = df_memory(myvar)
+        print(f"{kk:14s} => {df_mem:,.2f} MB")
+# --------------------------------------------------------------
+
+Here is recommended approach:
+
+ - use a call to print_df_memory() function
+   at the end of each cell of your Jupyter notebook
+   This will show you the DataFrames memory usage
+
+ - delete DataFrames as soon as they no longer needed
+    also delete other temporary objects (bags, lists, dicts) when they no longer needed
+    use gc.collect() command after that to speed-up garbage collection
+
+       del df1, df2
+       gc.collect()
+
+ - also use this function (defined under py_lib/)
+   to see the memory on the server:
+
+    memory_usage():
+
+# --------------------------------------------------------------
+ - split/eliminate all chains
+
+Example from the script:
+
+actlegalltime2DF = (actlegalltime2DF[["date", "date_type", "Id"]]
+                   .groupby(["date", "date_type"])
+                   .nunique()
+                   .drop(columns=["date", "date_type"])
+                   .reset_index()
+                   .rename(columns={"Id": "total_with_active_legal_cc_all_time_V2"}))
+
+During execution of this chain a lot of temporary objects are put in memory.
+This is a MAJOR no-no!
+The above construct should be split into 6 separate operations.
+Temporary objects should be deleted.
+
+mydf = actlegalltime2DF[["date", "date_type", "Id"]].copy()
+tmp = mydf.groupby(["date", "date_type"]).nunique()  # counts of unique elements
+del mydf
+tmp = tmp.drop(columns=["date", "date_type"])
+tmp = tmp.reset_index()
+actlegalltime2DF = tmp.rename(columns={"Id": "total_with_active_legal_cc_all_time_V2"}))
+del tmp
+gc.collect()
+
+# --------------------------------------------------------------
+Another example where memory is used twice:
+
+cifilt = (midciccDF["Legal_Marked_Date__c"].fillna("1970-01-01") <= midciccDF.fillna("1970-01-01")["Cancelled_SIF_Date__c"]) |
+         (midciccDF["Legal_Marked_Date__c"].fillna("1970-01-01") <= midciccDF.fillna("1970-01-01")["Committed_Date__c"])
+
+This defines a Pandas Series with True/False values (a mask)
+We can rewrite this as following:
+
+ser_legal  = midciccDF["Legal_Marked_Date__c"].fillna("1970-01-01")
+ser_cancel = midciccDF["Cancelled_SIF_Date__c"].fillna("1970-01-01")
+ser_commit = midciccDF["Committed_Date__c"].fillna("1970-01-01")
+cifilt = (ser_legal <= ser_cancel) | (ser_legal <= ser_commit)
+
+del ser_legal, ser_cancel, ser_commit
+gc.collect()
+
+# --------------------------------------------------------------
+When you are making changes to a script, please:
+ -  convert comments into print statements - so we can see progress in the log file
+ - add printouts of memory usage for DataFrames
+# --------------------------------------------------------------
+

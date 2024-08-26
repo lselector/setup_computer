@@ -1,0 +1,60 @@
+# --------------------------------------------------------------
+The default branch name for new GitHub repositories
+is not "master", it is now "main":
+
+https://github.com/github/renaming
+
+I still want to use "master".
+So when I create a new repo, I rename
+in browser rename from main to master.
+
+Then locally run these commands:
+
+git branch -m main master
+git fetch origin
+git branch -u origin/master master
+git remote set-head origin -a
+
+# --------------------------------------------------------------
+Note - in 2021 GitHub switched their authentication rules.
+
+Now you should use SSH.
+
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
+
+ssh-keygen -t ed25519 -C "your_email@example.com"
+
+/Users/you/.ssh/github_myname/id_ed25519_github
+
+eval "$(ssh-agent -s)"
+
+open ~/.ssh/config
+
+Host *
+  AddKeysToAgent yes
+
+Host github.com
+  User myuser
+  HostName github.com
+  IdentityFile ~/.ssh/github_myname/id_ed25519_github
+  UseKeychain yes
+  IdentityFile ~/.ssh/id_ed25519_github
+
+# -------------------------------------
+# Then copy/paste public key into Github website:
+
+https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account
+
+# -------------------------------------
+# Then switch the remote locally:
+
+cd your_local_repo_dir
+git remote set-url origin git@github.com:YouUser/YouRepo.git
+
+git remote -v
+origin  git@github.com:YouUser/YouRepo.git (fetch)
+origin  git@github.com:YouUser/YouRepo.git (push)
+
+git branch
+* master
+# -------------------------------------

@@ -1,0 +1,25 @@
+# ------------------------------------
+# .bashrc for local machine only
+# ------------------------------------
+export PYTHONDONTWRITEBYTECODE=1
+export PROMPT_COMMAND='PS1_PATH=$(sed "s:\([^/\.]\)[^/]*/:\1/:g" <<< ${PWD/#$HOME/\~})'
+export PS1='\u@\h:$PS1_PATH\$ '
+export BASH_SILENCE_DEPRECATION_WARNING=1  # for MacOS
+export SSHDIR=$HOME/.ssh
+export HISTSIZE=10000
+export HISTFILESIZE=10000
+export PATH="$HOME/miniconda3/bin:$PATH"
+PYTHONPATH=".:./py_lib:$HOME/py_lib:$HOME/docs/py_lib:$HOME/Documents/GitHub/setup_computer/py_lib"
+# ------------------------------------
+# function to source file only if it exists
+mysource () {
+    [[ -f "$1" ]] && source "$1"
+}
+# ------------------------------------
+mysource $HOME/.bash_aliases
+mysource $HOME/.mygit
+mysource $HOME/.myvv
+# ------------------------------------
+# avoid activating conda virtual environments
+conda config --set auto_activate_base false 
+# ------------------------------------

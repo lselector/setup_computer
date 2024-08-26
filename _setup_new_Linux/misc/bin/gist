@@ -1,0 +1,13 @@
+#! /bin/bash
+
+# gist - git status - a command to check
+# if anything should be updated from server or committed
+
+echo "-------------------------------------"
+echo "files which diff from remote repo"
+git fetch;
+git diff --name-only
+echo "-------------------------------------"
+echo "files changed locally"
+git status .
+echo "-------------------------------------"
