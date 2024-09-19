@@ -17,7 +17,7 @@ OLDDIR=OLD_$MYDT
 mkdir $OLDDIR
 
 # ----------------------- change this to the repo you want to "compress"
-repo_dir=web-eais
+repo_dir=python_tutorials
 
 for mydir in $repo_dir
 do

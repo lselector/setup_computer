@@ -24,15 +24,20 @@ numpy
 pandas
 scikit-learn
 matplotlib           # graphs, histograms, etc.
+polars[all]
 # ----------------- chatbots, etc
 ipython
 openai
 anthropic
 python-dotenv
-google-search-results
+# google-search-results
 flask
-streamlit
-chainlit
+arrow
+pyarrow
+python-fasthtml
+pymilvus
+# streamlit
+# chainlit
 # ----------------- misc
 icalendar     # make calendar invites
 pytube        # download youtube videos

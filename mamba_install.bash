@@ -1,15 +1,17 @@
 #! /bin/bash
 
 # -------------------------------------
-# download and install miniconda
+# script to install modules using mamba (python package manager)
+# mamba is a reimplementation of the conda package manager in C++.
+# It features parallel downloading and faster dependency solving
+# To use, first download and install miniconda
 #   https://docs.conda.io/en/latest/miniconda.html
-#   
-# make sure that these directories added to PATH:
+# Make sure that these directories added to PATH:
 #     $HOME/miniconda3/condabin
 #     $HOME/miniconda3/bin
-# -------------------------------------
-# then install mamba:
+# Then install mamba:
 #   https://github.com/mamba-org/mamba
+# -------------------------------------
 
 conda update -y -n base -c defaults conda
 conda config --add channels conda-forge
