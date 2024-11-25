@@ -23,4 +23,7 @@
 [push]
     default = tracking
 [branch]
-    autosetuprebase = always
+    autosetuprebase = false
+[pull]
+    rebase = false
+
