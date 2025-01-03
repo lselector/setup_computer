@@ -1,0 +1,75 @@
+
+WSL = Windows Subsystem for Linux 
+
+https://learn.microsoft.com/en-us/windows/wsl/about
+https://learn.microsoft.com/en-us/windows/wsl/install
+
+Once you have it, you will have a location on your computer
+where you have your linux home directory. 
+
+In Windows File Explorer on the left you will have "Ubuntu" drive
+to explore Linux files. You can edit them using VS Code.
+
+How to work daily:
+  Open Windows Terminal, and type "wsl" command
+Your personal WSL home directory in wsl terminal
+is at ~/ or /home/<your_username>/
+
+All your installations (miniconda python, data, ...) 
+should go only under this directory
+(otherwise things will be very slow)
+
+Note - you can access other locations as needed (but it is slow).
+Your Windows files are accessible under /mnt/
+For example, your C: drive is at /mnt/c
+
+WSL is a regular Ubuntu Linux and bash shell.
+So you can use regular unix commands like 
+    cd , mkdir, touch, nano, vim, etc.
+you can do package management:
+    sudo apt update
+    sudo apt upgrade
+    sudo apt install package_name
+
+Your Linux environment persists between sessions
+Changes to Linux files from Windows should be made through WSL
+Use VS Code's "Remote - WSL" extension
+
+If you encounter issues after reboot:
+
+If WSL doesn't start, try: 
+    wsl --shutdown then start again
+If you get network errors: 
+    sudo service networking restart
+For other services: 
+    sudo service <service_name> start
+
+The WSL home directory can be accessed 
+in Windows File Explorer.  
+It shows as "Ubuntu" (unless you installed a different distribution).
+The path would be \\wsl$\Ubuntu\home\<username> 
+for a standard Ubuntu installation.
+
+Network path: \\wsl$\<distribution_name>\home\<username>
+Direct path: %LOCALAPPDATA%\Packages\<distribution_package>\LocalState\ext4.vhdx
+
+The first method (\wsl$) is recommended as it provides 
+proper Linux filesystem access.
+
+To open it quickly:
+    Open File Explorer
+    Type \\wsl$ in the address bar
+    Navigate to your distribution, then /home/<username>
+
+For environment and python you can follow 
+regular installation procedures (for a Mac) 
+as described here
+    github.com/lselector/setup_computer/
+
+See for example here:
+_setup_new_Mac.txt
+dot/
+bin/
+py_lib/
+ipython_startup/
+python_install.txt
