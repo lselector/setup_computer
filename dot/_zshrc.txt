@@ -1,0 +1,41 @@
+# -----------------------------------------------
+# zsh config
+# -----------------------------------------------
+prompt_short_path() {
+  echo "${PWD/#$HOME/~}" | sed 's:\([^/\.]\)[^/]*/:\1/:g'
+}
+setopt PROMPT_SUBST
+PROMPT='%n@%m:$(prompt_short_path)$ '
+# -----------------------------------------------
+eval "$(/opt/homebrew/bin/brew shellenv)"
+export PATH="/opt/homebrew/opt/python@3.13/libexec/bin:$PATH"
+export PATH="$HOME/docs/bin:$PATH"
+export PYTHONPATH=".:./py_lib:$HOME/docs/py_lib"
+export PYTHONDONTWRITEBYTECODE=1
+# -----------------------------------------------
+export SSHDIR=$HOME/.ssh
+export HISTSIZE=10000
+export SAVEHIST=10000
+export HISTFILE=~/.zsh_history
+# -----------------------------------------------
+alias fd='/opt/homebrew/bin/fd -iI'
+alias ls='/bin/ls -G'
+alias  ll='/bin/ls -lFG'
+alias lll='/bin/ls -alFG'
+alias  ii='export QT_QPA_PLATFORM='offscreen';ipython'
+alias  nb='jupyter notebook'
+alias clear="clear && printf '\e[3J'"     # clear screen and scrollback
+alias hist="cat $HISTFILE"
+# -----------------------------------------------
+bindkey "^T" forward-search-history
+bindkey "\e[A" history-search-backward
+bindkey "\e[B" history-search-forward
+# -----------------------------------------------
+path() {
+  print -l ${(s.:.)PATH}
+}
+# -------------------------------------------------
+pypath() {
+  print -l ${(s.:.)PYTHONPATH}
+}
+
