@@ -1,5 +1,5 @@
 #!/bin/bash
-# Function to estimate tokens in a text file using awk
+# Function to estimate tokens in a text file using perl
 estimate_tokens() {
     local file=$1
     if [ ! -f "$file" ]; then
@@ -7,35 +7,40 @@ estimate_tokens() {
         return 1
     fi
     
-    # Use awk to process the file in a single pass
-    local estimate=$(awk '
-    BEGIN {
-        word_count = 0;
-        char_count = 0;
-        punct_count = 0;
-    }
-    {
-        # Count words
-        word_count += NF;
+    # Use perl to process the file in a single pass with handling for unusual characters
+    local estimate=$(perl -e '
+        $file = $ARGV[0];
+        open(my $fh, "<:raw", $file) or die "Could not open file $file: $!";
         
-        # Count characters (including newlines)
-        char_count += length($0) + 1;
+        $word_count = 0;
+        $char_count = 0;
+        $punct_count = 0;
         
-        # Count punctuation
-        for (i = 1; i <= length($0); i++) {
-            c = substr($0, i, 1);
-            if (c ~ /[.,!?;:()\[\]{}"\047]/)
-                punct_count++;
+        while (my $line = <$fh>) {
+            # Count bytes
+            $char_count += length($line);
+            
+            # Try to safely handle encoding issues by replacing invalid UTF-8
+            $safe_line = $line;
+            $safe_line =~ s/[^\x00-\x7F]/ /g; # Replace non-ASCII with spaces
+            
+            # Count words (crude but effective across encodings)
+            $word_count += scalar(split(/\s+/, $safe_line)) - 1;
+            
+            # Count punctuation
+            $punct_count += () = $safe_line =~ /[.,!?;:()\[\]{}"\-]/g;
         }
-    }
-    END {
+        
+        # Add a small buffer for word count since we are being conservative
+        $word_count = $word_count > 0 ? $word_count : 0;
+        
         # Calculate estimates
-        basic_estimate = word_count + (punct_count / 2);
-        char_based_estimate = char_count / 4;
+        $basic_estimate = $word_count + ($punct_count / 2);
+        $char_based_estimate = $char_count / 4;
         
         # Average both methods and round to nearest integer
-        printf("%d\n", int((basic_estimate + char_based_estimate) / 2 + 0.5));
-    }
+        $final_estimate = int(($basic_estimate + $char_based_estimate) / 2 + 0.5);
+        print $final_estimate;
     ' "$file")
     
     echo "$estimate"
