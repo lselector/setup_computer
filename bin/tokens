@@ -1,29 +1,51 @@
 #!/bin/bash
-
 # Function to estimate tokens in a text file
 estimate_tokens() {
     local file=$1
-    
+
     if [ ! -f "$file" ]; then
         echo "Error: File '$file' not found." >&2
         return 1
     fi
-    
+
     # Read the file
     local text=$(cat "$file")
-    
+
     # Method 1: Word count + punctuation estimation
     local word_count=$(echo "$text" | wc -w)
-    local punctuation_count=$(echo "$text" | grep -o '[.,!?;:()[\]{}"\047]' | wc -l)
+
+    # Fix: Use a different approach for counting punctuation
+    # Count each punctuation mark separately to avoid quoting issues
+    local period_count=$(echo "$text" | grep -o "\." | wc -l)
+    local comma_count=$(echo "$text" | grep -o "," | wc -l)
+    local exclamation_count=$(echo "$text" | grep -o "!" | wc -l)
+    local question_count=$(echo "$text" | grep -o "?" | wc -l)
+    local semicolon_count=$(echo "$text" | grep -o ";" | wc -l)
+    local colon_count=$(echo "$text" | grep -o ":" | wc -l)
+    local paren_open_count=$(echo "$text" | grep -o "(" | wc -l)
+    local paren_close_count=$(echo "$text" | grep -o ")" | wc -l)
+    local bracket_open_count=$(echo "$text" | grep -o "\[" | wc -l)
+    local bracket_close_count=$(echo "$text" | grep -o "\]" | wc -l)
+    local brace_open_count=$(echo "$text" | grep -o "{" | wc -l)
+    local brace_close_count=$(echo "$text" | grep -o "}" | wc -l)
+    local quote_double_count=$(echo "$text" | grep -o "\"" | wc -l)
+    local quote_single_count=$(echo "$text" | grep -o "'" | wc -l)
+
+    # Total punctuation count
+    local punctuation_count=$((period_count + comma_count + exclamation_count + question_count +
+                             semicolon_count + colon_count + paren_open_count + paren_close_count +
+                             bracket_open_count + bracket_close_count + brace_open_count +
+                             brace_close_count + quote_double_count + quote_single_count))
+
     local basic_estimate=$((word_count + punctuation_count / 2))
-    
+
     # Method 2: Character-based estimation (4 chars per token approximation)
     local char_count=$(echo "$text" | wc -c)
     local char_based_estimate=$((char_count / 4))
-    
+
     # Average both methods
     local final_estimate=$(((basic_estimate + char_based_estimate) / 2))
-    
+
     echo "$final_estimate"
 }
 
@@ -33,15 +55,15 @@ main() {
         echo "Usage: $0 <file1> [file2] [file3] ..." >&2
         exit 1
     fi
-    
+
     local total_tokens=0
     local file_count=0
-    
+
     # Process each file
     for file in "$@"; do
         if [ -f "$file" ]; then
             tokens=$(estimate_tokens "$file")
-            
+
             if [ $? -eq 0 ]; then
                 # Print tokens right-adjusted in 7-character field, followed by filename
                 printf "%7d : %s\n" "$tokens" "$file"
@@ -52,7 +74,7 @@ main() {
             echo "Warning: '$file' is not a file, skipping." >&2
         fi
     done
-    
+
     # Print summary
     if [ $file_count -gt 1 ]; then
         echo "------------------------"
@@ -62,4 +84,5 @@ main() {
 
 # Execute main function with all arguments
 main "$@"
+
 
