@@ -1,0 +1,65 @@
+#!/bin/bash
+
+# Function to estimate tokens in a text file
+estimate_tokens() {
+    local file=$1
+    
+    if [ ! -f "$file" ]; then
+        echo "Error: File '$file' not found." >&2
+        return 1
+    fi
+    
+    # Read the file
+    local text=$(cat "$file")
+    
+    # Method 1: Word count + punctuation estimation
+    local word_count=$(echo "$text" | wc -w)
+    local punctuation_count=$(echo "$text" | grep -o '[.,!?;:()[\]{}"\047]' | wc -l)
+    local basic_estimate=$((word_count + punctuation_count / 2))
+    
+    # Method 2: Character-based estimation (4 chars per token approximation)
+    local char_count=$(echo "$text" | wc -c)
+    local char_based_estimate=$((char_count / 4))
+    
+    # Average both methods
+    local final_estimate=$(((basic_estimate + char_based_estimate) / 2))
+    
+    echo "$final_estimate"
+}
+
+# Main function
+main() {
+    if [ $# -eq 0 ]; then
+        echo "Usage: $0 <file1> [file2] [file3] ..." >&2
+        exit 1
+    fi
+    
+    local total_tokens=0
+    local file_count=0
+    
+    # Process each file
+    for file in "$@"; do
+        if [ -f "$file" ]; then
+            tokens=$(estimate_tokens "$file")
+            
+            if [ $? -eq 0 ]; then
+                # Print tokens right-adjusted in 7-character field, followed by filename
+                printf "%7d : %s\n" "$tokens" "$file"
+                total_tokens=$((total_tokens + tokens))
+                file_count=$((file_count + 1))
+            fi
+        else
+            echo "Warning: '$file' is not a file, skipping." >&2
+        fi
+    done
+    
+    # Print summary
+    if [ $file_count -gt 1 ]; then
+        echo "------------------------"
+        printf "%7d : TOTAL (across %d files)\n" "$total_tokens" "$file_count"
+    fi
+}
+
+# Execute main function with all arguments
+main "$@"
+
