@@ -44,7 +44,7 @@ pytube        # download youtube videos
 python-docx   # create MS Word from Python
 xlsxwriter    # create MS Excel from Python
 python-pptx   # create MS PowerPoint from Python
-# xpdf_python   # create PDF from Python (old, requires old gitpython, conflict with streamlit)
+xpdf_python   # create PDF from Python (conflict with streamlit)
 pyqrcode      # create QR Code
 pypng         # create PNG file
 # -------------------------------------
