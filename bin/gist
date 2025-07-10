@@ -2,7 +2,7 @@
 
 echo "------------------------------------- files which diff from remote repo"
 git fetch;
-git diff --name-only origin/master .
+git diff --name-only 
 echo "------------------------------------- files changed locally"
 git status .
 echo "-------------------------------------"
