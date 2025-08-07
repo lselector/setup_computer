@@ -3,7 +3,8 @@ softwareupdate - Apple's command-line software update tool
 
 softwareupdate --help
 softwareupdate --list
-softwareupdate --download --fetch-full-installer --full-installer-version 15.6
+
+sudo softwareupdate --download --fetch-full-installer --full-installer-version 15.6
 
     --download                    - Downloads the installer without installing it
     --fetch-full-installer        - Downloads the complete macOS installer (not just an update)
