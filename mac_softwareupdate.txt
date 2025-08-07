@@ -1,0 +1,17 @@
+
+softwareupdate - Apple's command-line software update tool
+
+softwareupdate --help
+softwareupdate --list
+softwareupdate --download --fetch-full-installer --full-installer-version 15.6
+
+    --download                    - Downloads the installer without installing it
+    --fetch-full-installer        - Downloads the complete macOS installer (not just an update)
+    --full-installer-version 15.6 - Specifies exactly which version to download (macOS Sequoia 15.6)
+
+What this accomplishes:
+
+Downloads the full ~13GB macOS installer to /Applications/
+Creates a file like "Install macOS Sequoia.app" in Applications
+Allows you to install, create bootable media, or use for clean installs
+Works even if you're on a different macOS version
