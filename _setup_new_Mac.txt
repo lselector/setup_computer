@@ -1,5 +1,5 @@
 
-updated November 8, 2024
+updated September 2025
 
 ========================================================
 Initial installation
@@ -12,7 +12,7 @@ Initial installation
   - show filenames' extensions
   - create "~/docs" directory - and make it default in Finder
   - don't show tags
-  - show home directory, ...
+  - finder sidebar - show home, docs, ...
 ========================================================
 .. trackpad settings - turn off the "Force Click and haptic feedback"
 ========================================================
@@ -44,34 +44,11 @@ Download this repo as zip, unzip - put under "docs":
 Some Free software
 .. Firefox - https://www.mozilla.org/en-US/firefox/mac/
 .. Bitwarden - https://bitwarden.com/
-.. Battery Health (or paid version 2 or 3) from FIBLAB - show battery health 
-   https://fiplab.com/apps/battery-health-3-for-mac
-   https://itunes.apple.com/us/app/battery-health-2-stats-info/id1120214373?mt=12
 .. VLC Video Player - https://www.videolan.org/vlc/download-macosx.html
 .. Adobe Acrobat Reader -    https://get.adobe.com/reader/
 .. Malwarebytes Antimalware
-.. Scroll Reverser - tune scrolling direction for mouse vs trackpad
-   https://pilotmoon.com/scrollreverser/
 ========================================================
-Commercial Software
 .. MS Office, MS Teams, OneDrive
-.. Memory Clean $9.99
-   https://fiplab.com/apps/memory-clean-for-mac
-.. PDF Expert ~$75/year
-.. Bartender
-   https://www.macbartender.com
-========================================================
-Windows Manager (nice to have):
-.. BetterSnapTool $2.99
-   https://itunes.apple.com/us/app/bettersnaptool/id417375580?mt=12
-.. Spectacle - move and resize windows - https://www.spectacleapp.com/
-   See in this directory  Spectacle.zip, download, unzip, put in Applications
-.. Rectangle:
-   - https://rectangleapp.com
-   - https://www.youtube.com/watch?v=AaZiA43Jm90
-.. Magnet $4.99:
-   - https://magnet.crowdcafe.com/
-   - https://www.youtube.com/watch?v=u_Tt4Zl-oQA
 ========================================================
 Install python
   look in "python_install.txt" in the same directory
@@ -84,12 +61,6 @@ Install Rust
   install VSCode extension "Rust Extension Pack"
 =====================================
 Install Command Line Tools (needed for "brew")
-Google for: 
-  how to install Command Line Tools macOS
-You will find something like this:
-  http://osxdaily.com/2014/02/12/install-command-line-tools-mac-os-x/
-  https://macpaw.com/how-to/install-command-line-tools
-Basically you should run this command:
      xcode-select --install
 =====================================
 Homebrew:
@@ -103,8 +74,18 @@ then run command:
 
 brew install htop wget grep vim git fd
 
+# ----------------------------------------------
+After all software installed, configure:
+  Lev-s custom Apple scripts in Finder toolbar
+  ipython startup files and config changes
 
-
+# ----------------------------------------------
+# ----------------------------------------------
+# ----------------------------------------------
+# ----------------------------------------------
+# ----------------------------------------------
+# ----------------------------------------------
+# ----------------------------------------------
 # ----------------------------------------------
 "htop" may need root access.
 To stop it asking for root password every time, you can do this:
@@ -117,8 +98,7 @@ myuser ALL = (ALL) ALL
 myuser ALL = NOPASSWD: /usr/local/bin/htop
 # ----------------------------------------------
 optional: brew install ffmpeg fzf ripgrep bat exa neovim
-optional: brew install coreutils
-optional: brew install diffutils
+optional: brew install coreutils diffutils
 
 https://www.topbug.net/blog/2013/04/14/install-and-use-gnu-command-line-tools-in-mac-os-x/
 
@@ -137,25 +117,7 @@ Download the app from here: https://www.macports.org/
 Then in terminal use the "port" command:
     sudo port install htop
     sudo port install fd
-=====================================
-After all software installed, configure:
-  Lev-s custom Apple scripts in Finder toolbar
-  ipython startup files and config changes
-=====================================
-=====================================
-=====================================
-=====================================
-=====================================
-=====================================
-=====================================
-=====================================
-=====================================
-# Commercial Software optional
-# BBEdit $49.99 https://www.barebones.com/store/download.html
-# UltraEdit for Mac $99.95 https://www.ultraedit.com/products/mac-text-editor/
-# DeltaWalker for Mac $59.95 (compare files / directores) https://www.deltawalker.com/
-# DaisyDisk $9.99 https://itunes.apple.com/us/app/daisydisk/id411643860?mt=12
-# Alfred - hotkeys - search, keywords, text expansion https://www.alfredapp.com/
+
 =====================================
 Free software - more
 .. Kdenlive Video Editor - https://kdenlive.org/en/download/
@@ -164,22 +126,33 @@ Free software - more
 .. FreeSpace $0.99
    https://itunes.apple.com/us/app/freespace/id457520846?mt=12
 =====================================
-# Some other tools I like:
-#   Alfred
-#   Ghost Reader Plus - convert text to Audio
-#   GitHub Desktop
-#   Splashtop Business - manage remote computers
-#   Apple Store app "Draw on My Screen EZ"
-#   Adobe Photoshop & Illustrator
-#   MacX DVD Video Converter Pro Pack - convert video to video or audio
-#   EpuborAudibleConverter - convert audio books into mp3
-#   EPUB Converter.app - convert electronic books into txt or PDF
-#   NordVPN IKE.app - VPN
-#   PingPlotter.app - trace network problems
-=====================================
 Free software 
 .. Blackmagic Disk Speed Test
    https://itunes.apple.com/us/app/blackmagic-disk-speed-test/id425264550?mt=12
 =====================================
-
+========================================================
+.. Battery Health (or paid version 2 or 3) from FIBLAB - show battery health 
+   https://fiplab.com/apps/battery-health-3-for-mac
+   https://itunes.apple.com/us/app/battery-health-2-stats-info/id1120214373?mt=12
+.. Scroll Reverser - tune scrolling direction for mouse vs trackpad
+   https://pilotmoon.com/scrollreverser/
+========================================================
+Commercial Software
+.. Memory Clean $9.99
+   https://fiplab.com/apps/memory-clean-for-mac
+.. PDF Expert ~$75/year
+.. Bartender
+   https://www.macbartender.com
+========================================================
+Windows Manager (nice to have):
+.. BetterSnapTool $2.99
+   https://itunes.apple.com/us/app/bettersnaptool/id417375580?mt=12
+.. Spectacle - move and resize windows - https://www.spectacleapp.com/
+   See in this directory  Spectacle.zip, download, unzip, put in Applications
+.. Rectangle:
+   - https://rectangleapp.com
+   - https://www.youtube.com/watch?v=AaZiA43Jm90
+.. Magnet $4.99:
+   - https://magnet.crowdcafe.com/
+   - https://www.youtube.com/watch?v=u_Tt4Zl-oQA
 
