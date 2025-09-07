@@ -3,44 +3,44 @@ updated September 2025
 
 ========================================================
 Initial installation
+Plugin your macbook to charge, turn it on.
 .. User account, password, 
-.. WiFi, fingerprint,
+.. WiFi, timezone
+Everything else you can skip - and get to the desktop
+========================================================
+On top left there is an apple menu from where you can goto "System Settings"
+It has built-in search.
+Go there and set up:
+.. fingerprint 
 .. iCloud Account
 .. install updates (if any)
-========================================================
-.. Finder:
-  - show filenames' extensions
-  - create "~/docs" directory - and make it default in Finder
-  - don't show tags
-  - finder sidebar - show home, docs, ...
-========================================================
-.. trackpad settings - turn off the "Force Click and haptic feedback"
-========================================================
+.. trackpad settings - turn OFF the "Force Click and haptic feedback"
 .. battery - show percentage
 .. clock - show seconds
 ========================================================
+Click on Finder icon (face blue and whie mask)
+On top left Click on Finder > Settings
+  - Advanced: show filenames' extensions
+  - don't show tags
+  - show your home directory in left sidebar
+  - create "$HOME/docs" directory - and make it default in Finder
+  - show this "docs" directory in Finder's sidebar
+
+learn to open/close Finder windows, 
+change view from icons to list
+
+use cmd-N to open new window, cmd-W to close
+
+cmd-C, cmd-V to cope-paste between windows
+
+Or you can click and drag te file(s) while holding the Option key 
+to create a duplicate at the new location
+========================================================
+Install
 .. Google Chrome - https://www.google.com/chrome/
 .. iTerm2 - https://www.iterm2.com/
-.. chsh -s /bin/bash 
-========================================================
-Download this repo as zip, unzip - put under "docs":
- .. https://github.com/lselector/setup_computer
- .. change Desktop wallpaper
-========================================================
 .. Sublime Text - text editor - https://www.sublimetext.com/3
-   sudo ln -s "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl" /usr/local/bin/subl
-========================================================
 .. Visual Studio Code - https://code.visualstudio.com/download
-  sudo ln -s '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code' /usr/local/bin/code
-  make VSCode default for txt files
-========================================================
-.. install .bashrc and other env fiels from "dot" directory
-   (setup_computer/dot/*) 
-========================================================
-.. make short password - setup_computer/_password_short.txt
-.. ~/.ssh/ - keys. config
-.. update git
-========================================================
 Some Free software
 .. Firefox - https://www.mozilla.org/en-US/firefox/mac/
 .. Bitwarden - https://bitwarden.com/
@@ -49,6 +49,30 @@ Some Free software
 .. Malwarebytes Antimalware
 ========================================================
 .. MS Office, MS Teams, OneDrive
+========================================================
+========================================================
+========================================================
+========================================================
+.. chsh -s /bin/bash 
+========================================================
+Download this repo as zip, unzip - put under "docs":
+ .. https://github.com/lselector/setup_computer
+ .. change Desktop wallpaper
+========================================================
+  sudo mkdir -p /usr/local/bin
+  sudo ln -s "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl" /usr/local/bin/subl
+  sudo ln -s '/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code' /usr/local/bin/code
+========================================================
+  create a small file with extension ".txt"
+  right-click on it in 
+  make VSCode default for txt files
+========================================================
+.. install .bashrc and other env fiels from "dot" directory
+   (setup_computer/dot/*) 
+========================================================
+.. make short password - setup_computer/_password_short.txt
+.. ~/.ssh/ - keys. config
+.. update git
 ========================================================
 Install python
   look in "python_install.txt" in the same directory
