@@ -1,3 +1,87 @@
+=====================================
+Here is my latest workflow to install Python 
+and set up a modern, `uv`-managed environment 
+from scratch on a new Mac laptop.
+
+# -----------------------------------
+First, change your default shell from zsh to bash.
+chsh -s /bin/bash
+
+and add to .bashrc:
+export BASH_SILENCE_DEPRECATION_WARNING=1
+
+and add to ~/.config/fish/config.fish:
+set -gx BASH_SILENCE_DEPRECATION_WARNING 1
+
+# -----------------------------------
+# Install Homebrew
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# -----------------------------------
+# install python
+    brew install python
+    which python
+    python --version
+
+# -----------------------------------
+# install uv
+    curl -Ls https://astral.sh/uv/install.sh | sh
+# Or use Homebrew if available:
+    brew install astral-sh/uv/uv
+    which uv 
+    uv --version
+
+# -----------------------------------
+# Create a Standard Python Virtual Environment and activate it
+    uv venv ~/.venvs/standard
+    source ~/.venvs/standard/bin/activate (for zsh or bash)
+    source ~/.venvs/standard/bin/activate.fish
+
+# -----------------------------------
+# Install Packages from requirements.txt file
+    uv pip install -r requirements.txt
+# or individual packages:
+    uv pip install requests numpy pandas
+
+# -----------------------------------
+# Note - the above process doesn't do project-based manageemnt.
+# If you want to create a projec wit toml fiel and lock file,
+# you need to do:
+    uv init           # Generates pyproject.toml
+    uv add requests   # Adds packages, generates uv.lock
+
+# -----------------------------------
+# to update python to a newest version you would need
+# to install the latest python, and recreate the virtual environment:
+    brew upgrade python  # Gets the latest Python
+    uv venv ~/.venvs/standard --python=3.X  # X = latest version
+    uv pip install --upgrade --upgrade-strategy eager -r requirements.txt
+    uv pip install -r requirements.txt
+    uv pip install --upgrade somepackage
+
+# -----------------------------------
+To automatically activate python environment, add this:
+
+~/.bashrc:   
+    source /Users/levselector/.venvs/standard/bin/activate
+~/.config/fish/config.fish: 
+    source /Users/levselector/.venvs/standard/bin/activate.fish
+
+# -----------------------------------
+# Note: in your VSCode settings.json add this:
+    "python.terminal.activateEnvironment": false,
+    "python.defaultInterpreterPath": "~/.venvs/standard",
+    "terminal.integrated.defaultProfile.osx": "bash"
+
+# in PyCharm - go to Settings > Tools > Terminal 
+  and change from "zsh" to "bash --login"
+
+=====================================
+=====================================
+=====================================
+=====================================
+=====================================
+
 If you want to install anaconda or miniconda:
     https://www.anaconda.com/distribution/
     https://docs.conda.io/en/latest/miniconda.html
