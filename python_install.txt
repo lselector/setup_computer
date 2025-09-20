@@ -17,6 +17,8 @@ set -gx BASH_SILENCE_DEPRECATION_WARNING 1
 # Install Homebrew
     /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
+# careful - update .bashrc and config.fish to add brew to PATH
+
 # -----------------------------------
 # install python
     brew install python
