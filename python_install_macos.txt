@@ -65,6 +65,21 @@ set -gx BASH_SILENCE_DEPRECATION_WARNING 1
     uv pip install --upgrade somepackage
 
 # -----------------------------------
+# to update to 3.14:
+uv venv --python /usr/local/bin/python3.14 ~/.venvs/standard
+cat requirements.txt | uv pip compile - -o requirements.txt --upgrade
+uv pip sync requirements.txt
+
+or to remove it and return to 13.7:
+
+sudo rm -rf /Library/Frameworks/Python.framework/Versions/3.14
+sudo rm /usr/local/bin/python3.14
+sudo rm /usr/local/bin/pip3.14
+uv venv --python /usr/local/opt/python@3.13/libexec/bin/python ~/.venvs/standard
+cat requirements.in | uv pip compile - -o requirements.txt --upgrade
+uv pip sync requirements.txt
+
+# -----------------------------------
 To automatically activate python environment, add this:
 
 ~/.bashrc:   
