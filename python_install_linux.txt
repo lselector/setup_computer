@@ -1,0 +1,76 @@
+=====================================
+Ubuntu Linux - install Python
+=====================================
+
+Here is a modern workflow to install Python
+and set up a `uv`-managed environment
+from scratch on a fresh Ubuntu system.
+
+# -----------------------------------
+First, choose your default shell (bash is standard).
+To change your shell to bash:
+  chsh -s /bin/bash
+
+Add this to .bashrc for suppressing warnings:
+  export BASH_SILENCE_DEPRECATION_WARNING=1
+
+For Fish shell, add to ~/.config/fish/config.fish:
+  set -gx BASH_SILENCE_DEPRECATION_WARNING 1
+
+# -----------------------------------
+# Update and install essential build dependencies
+  sudo apt update
+  sudo apt install -y build-essential curl git
+
+# -----------------------------------
+# Install Python (use the system package)
+  sudo apt install -y python3 python3-venv python3-pip
+  which python3
+  python3 --version
+
+# -----------------------------------
+# Install uv
+  curl -Ls https://astral.sh/uv/install.sh | sh
+# Or use apt if available (may lag behind):
+  sudo apt install uv
+  which uv
+  uv --version
+
+# -----------------------------------
+# Create a Standard Python Virtual Environment and activate it
+  uv venv ~/.venvs/standard
+  source ~/.venvs/standard/bin/activate     (for bash/zsh)
+  source ~/.venvs/standard/bin/activate.fish
+
+# -----------------------------------
+# Install Packages from requirements.txt file
+  uv pip install -r requirements.txt
+# or individual packages:
+  uv pip install requests numpy pandas
+
+# -----------------------------------
+# For project-based management with toml/lock files:
+  uv init           # Generates pyproject.toml
+  uv add requests   # Adds packages, generates uv.lock
+
+# -----------------------------------
+# To upgrade python to the latest version:
+  sudo apt update
+  sudo apt install --only-upgrade python3
+  uv venv ~/.venvs/standard --python=3.X    # X = latest version
+  uv pip install --upgrade --upgrade-strategy eager -r requirements.txt
+  uv pip install -r requirements.txt
+  uv pip install --upgrade somepackage
+
+# -----------------------------------
+To automatically activate python environment, add this:
+
+~/.bashrc:
+  source /home/levselector/.venvs/standard/bin/activate
+~/.config/fish/config.fish:
+  source /home/levselector/.venvs/standard/bin/activate.fish
+
+# Add this shell version alias for checking:
+alias which_shell='echo "bash = $BASH_VERSION; zsh = $ZSH_VERSION; fish = $FISH_VERSION;" '
+
+# -----------------------------------

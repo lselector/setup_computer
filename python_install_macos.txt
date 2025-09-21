@@ -1,4 +1,7 @@
 =====================================
+MacOS - install Python
+=====================================
+
 Here is my latest workflow to install Python 
 and set up a modern, `uv`-managed environment 
 from scratch on a new Mac laptop.
@@ -68,6 +71,9 @@ To automatically activate python environment, add this:
     source /Users/levselector/.venvs/standard/bin/activate
 ~/.config/fish/config.fish: 
     source /Users/levselector/.venvs/standard/bin/activate.fish
+
+# add this alias
+alias which_shell='echo "bash = $BASH_VERSION; zsh = $ZSH_VERSION; fish = $FISH_VERSION; " '
 
 # -----------------------------------
 # Note: in your VSCode settings.json add this:
