@@ -24,7 +24,6 @@ import subprocess
 import socket
 import inspect
 # --------------------------------------
-import cgi                        # cgi.escape(mystr, quote=True) is useful
 import uuid                       # for generating unique identifiers
 import glob
 # --------------------------------------
