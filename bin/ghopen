@@ -1,0 +1,6 @@
+#!/bin/bash
+repo=$(git remote get-url origin | sed 's/git@github.com://;s/.git$//')
+branch=$(git branch --show-current)
+path=$(git rev-parse --show-prefix | sed 's/\/$//')
+open "https://github.com/$repo/tree/$branch/$path"
+
