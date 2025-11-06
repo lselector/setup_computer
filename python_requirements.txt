@@ -26,6 +26,7 @@ scikit-learn
 matplotlib           # graphs, histograms, etc.
 polars[all]
 # ----------------- chatbots, etc
+pipreqs  # utility to create requirements.txt
 ipython
 openai
 anthropic
