@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# vid_upscale - Upscale a video to 1920x1080 HD resolution
+# Usage: vid_upscale <input_file>
+
+if [ -z "$1" ]; then
+    echo "Usage: vid_upscale <input_file>"
+    echo "Example: vid_upscale ./crocodile.mp4"
+    exit 1
+fi
+
+input_file="$1"
+
+# Check if input file exists
+if [ ! -f "$input_file" ]; then
+    echo "Error: Input file '$input_file' not found"
+    exit 1
+fi
+
+# Get the directory, filename without extension, and extension
+dir=$(dirname "$input_file")
+filename=$(basename "$input_file")
+name="${filename%.*}"
+ext="${filename##*.}"
+
+# Create output filename with _HD suffix
+output_file="${dir}/${name}_HD.${ext}"
+
+# Get input file info
+input_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$input_file" 2>/dev/null)
+input_duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$input_file" 2>/dev/null | awk '{printf "%.2f seconds", $1}')
+input_size=$(ls -l "$input_file" | awk '{printf "%.2f MB", $5/1024/1024}')
+
+echo "Input file: $input_file"
+echo "  Resolution: $input_resolution"
+echo "  Duration: $input_duration"
+echo "  File size: $input_size"
+echo ""
+echo "Output file: $output_file"
+echo ""
+echo "Upscaling to 1920x1080..."
+
+# Run ffmpeg to upscale
+ffmpeg -i "$input_file" -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=black" -c:v libx264 -preset slow -crf 18 -c:a copy "$output_file"
+
+if [ $? -eq 0 ]; then
+    # Get output file info
+    output_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$output_file" 2>/dev/null)
+    output_size=$(ls -l "$output_file" | awk '{printf "%.2f MB", $5/1024/1024}')
+    
+    echo ""
+    echo "Done!"
+    echo ""
+    echo "=== Comparison ==="
+    echo "Input:  $input_file"
+    echo "  Resolution: $input_resolution | File size: $input_size"
+    echo "Output: $output_file"
+    echo "  Resolution: $output_resolution | File size: $output_size"
+else
+    echo "Error: ffmpeg failed"
+    exit 1
+fi

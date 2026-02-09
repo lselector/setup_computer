@@ -1,0 +1,9 @@
+#! /usr/bin/env bash
+
+# script to output the numbers of files with different file extensions
+# in current directory tree sorted from most common down.
+# Files without extensions are not listed
+
+fd -t f | grep -E '\.[^/.]+$' | sed -E 's/.*\.([^.]+)$/\1/' | sort | uniq -c | sort -rn
+
+

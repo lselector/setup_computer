@@ -1,0 +1,75 @@
+#!/bin/bash
+
+# vid_horiz - Convert vertical video to horizontal (1280x720) with white padding
+# Usage: vid_horiz input_file.mp4
+# Output: input_file_horizontal.mp4
+
+if [ -z "$1" ]; then
+    echo "Usage: vid_horiz <input_file>"
+    echo "Example: vid_horiz ./crocodile.mp4"
+    echo ""
+    echo "Converts vertical video to horizontal 1280x720 with white padding on sides."
+    exit 1
+fi
+
+input_file="$1"
+
+# Check if input file exists
+if [ ! -f "$input_file" ]; then
+    echo "Error: File '$input_file' not found"
+    exit 1
+fi
+
+# Get directory, filename without extension, and extension
+dir=$(dirname "$input_file")
+filename=$(basename "$input_file")
+name="${filename%.*}"
+ext="${filename##*.}"
+
+# Create output filename with _horizontal suffix
+output_file="${dir}/${name}_horizontal.mp4"
+
+# Get input video info
+width=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$input_file")
+height=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=s=x:p=0 "$input_file")
+input_size_bytes=$(stat -f%z "$input_file" 2>/dev/null || stat -c%s "$input_file" 2>/dev/null)
+input_size_mb=$(echo "scale=2; $input_size_bytes / 1048576" | bc)
+
+echo "Input:      $input_file"
+echo "Resolution: ${width}x${height}"
+echo "Size:       ${input_size_mb} MB"
+
+# Check if video is already horizontal (width >= height)
+if [ "$width" -ge "$height" ]; then
+    echo ""
+    echo "Video is already horizontal. No conversion needed."
+    exit 0
+fi
+
+echo ""
+echo "Converting vertical video to horizontal 1280x720 with white padding..."
+
+ffmpeg -i "$input_file" -vf "scale=-1:720:force_original_aspect_ratio=decrease,pad=1280:720:(1280-iw)/2:(720-ih)/2:white" -c:v libx264 -crf 18 -preset medium -c:a copy "$output_file"
+
+if [ $? -eq 0 ]; then
+    # Get output video info
+    output_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$output_file")
+    output_size_bytes=$(stat -f%z "$output_file" 2>/dev/null || stat -c%s "$output_file" 2>/dev/null)
+    output_size_mb=$(echo "scale=2; $output_size_bytes / 1048576" | bc)
+    
+    echo ""
+    echo "========== SUMMARY =========="
+    echo "Input:      $input_file"
+    echo "Resolution: ${width}x${height}"
+    echo "Size:       ${input_size_mb} MB"
+    echo ""
+    echo "Output:     $output_file"
+    echo "Resolution: $output_resolution"
+    echo "Size:       ${output_size_mb} MB"
+    echo "============================="
+    echo ""
+    echo "Done!"
+else
+    echo "Error: ffmpeg failed"
+    exit 1
+fi

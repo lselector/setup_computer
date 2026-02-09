@@ -1,0 +1,4 @@
+#! /bin/bash
+
+# qq - simply runs gist command
+gist

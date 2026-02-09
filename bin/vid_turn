@@ -1,0 +1,72 @@
+#!/bin/bash
+
+# vid_turn - Convert vertical video to horizontal by adding white padding
+# Usage: vid_turn <input_file>
+# Output: Creates a 1280x720 horizontal video with white padding on sides
+
+if [ -z "$1" ]; then
+    echo "Usage: vid_turn <input_file>"
+    echo "Example: vid_turn ./crocodile.mp4"
+    exit 1
+fi
+
+input_file="$1"
+
+# Check if input file exists
+if [ ! -f "$input_file" ]; then
+    echo "Error: Input file '$input_file' not found"
+    exit 1
+fi
+
+# Get the directory, filename without extension, and extension
+dir=$(dirname "$input_file")
+filename=$(basename "$input_file")
+name="${filename%.*}"
+ext="${filename##*.}"
+
+# Create output filename with _horizontal suffix
+output_file="${dir}/${name}_horizontal.mp4"
+
+# Get input file info
+input_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$input_file" 2>/dev/null)
+input_width=$(echo "$input_resolution" | cut -d'x' -f1)
+input_height=$(echo "$input_resolution" | cut -d'x' -f2)
+input_duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$input_file" 2>/dev/null | awk '{printf "%.2f seconds", $1}')
+input_size=$(ls -l "$input_file" | awk '{printf "%.2f MB", $5/1024/1024}')
+
+echo "Input file: $input_file"
+echo "  Resolution: $input_resolution"
+echo "  Duration: $input_duration"
+echo "  File size: $input_size"
+echo ""
+
+# Check if video is already horizontal (width >= height)
+if [ "$input_width" -ge "$input_height" ]; then
+    echo "Video is already horizontal (width >= height). No conversion needed."
+    exit 0
+fi
+
+echo "Output file: $output_file"
+echo ""
+echo "Converting vertical video to horizontal (1280x720) with white padding..."
+
+# Run ffmpeg to convert
+ffmpeg -i "$input_file" -vf "scale=-1:720:force_original_aspect_ratio=decrease,pad=1280:720:(1280-iw)/2:(720-ih)/2:white" -c:v libx264 -crf 18 -preset medium -c:a copy "$output_file"
+
+if [ $? -eq 0 ]; then
+    # Get output file info
+    output_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$output_file" 2>/dev/null)
+    output_size=$(ls -l "$output_file" | awk '{printf "%.2f MB", $5/1024/1024}')
+    
+    echo ""
+    echo "Done!"
+    echo ""
+    echo "=== Comparison ==="
+    echo "Input:  $input_file"
+    echo "  Resolution: $input_resolution | File size: $input_size"
+    echo "Output: $output_file"
+    echo "  Resolution: $output_resolution | File size: $output_size"
+else
+    echo "Error: ffmpeg failed"
+    exit 1
+fi

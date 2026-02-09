@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# vid_info - Display video resolution, duration, and file size
+# Usage: vid_info <input_file>
+
+if [ -z "$1" ]; then
+    echo "Usage: vid_info <input_file>"
+    echo "Example: vid_info ./crocodile.mp4"
+    exit 1
+fi
+
+input_file="$1"
+
+# Check if input file exists
+if [ ! -f "$input_file" ]; then
+    echo "Error: Input file '$input_file' not found"
+    exit 1
+fi
+
+# Get resolution (width x height)
+resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$input_file" 2>/dev/null)
+
+# Get duration in seconds and format it
+duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$input_file" 2>/dev/null)
+duration_formatted=$(echo "$duration" | awk '{
+    hours = int($1 / 3600)
+    minutes = int(($1 % 3600) / 60)
+    seconds = $1 % 60
+    if (hours > 0) {
+        printf "%d:%02d:%05.2f", hours, minutes, seconds
+    } else if (minutes > 0) {
+        printf "%d:%05.2f", minutes, seconds
+    } else {
+        printf "%.2f seconds", seconds
+    }
+}')
+
+# Get file size in MB
+file_size=$(ls -l "$input_file" | awk '{printf "%.2f MB", $5/1024/1024}')
+
+echo "File: $input_file"
+echo "Resolution: $resolution"
+echo "Duration: $duration_formatted"
+echo "File size: $file_size"
