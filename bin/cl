@@ -1,0 +1,7 @@
+#! /bin/bash
+
+# unset API key before invoking 
+# claude to use my MAX subscription
+
+ANTHROPIC_API_KEY= exec claude "$@"
+
