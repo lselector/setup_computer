@@ -2,9 +2,9 @@
 
 # gd - diff git HEAD vs current file
 
-git fetch;
-set myfile "levlevlev"
-set myfile $argv[1]
-git show origin/HEAD:./$myfile > ./$myfile.prev;
-vimdiff -c 'syntax off' ./$myfile.prev ./$myfile;
-/bin/rm -f ./$myfile.prev
+git fetch
+myfile="$1"
+git show "origin/HEAD:./$myfile" > "./$myfile.prev"
+vimdiff -c 'syntax off' "./$myfile.prev" "./$myfile"
+/bin/rm -f "./$myfile.prev"
+
