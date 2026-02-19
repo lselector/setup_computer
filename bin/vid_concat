@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# vid_concat - Concatenate two or more video files into one
+# Usage: vid_concat file1.mp4 file2.mp4 [file3.mp4 ...]
+# Output: file1_concat.mp4
+
+if [ "$#" -lt 2 ]; then
+    echo "Usage: vid_concat <file1> <file2> [file3 ...]"
+    echo "Example: vid_concat clip1.mp4 clip2.mp4 clip3.mp4"
+    echo ""
+    echo "Concatenates two or more video files into one horizontal (1280x720) video."
+    echo "All inputs are scaled/padded to 1280x720 before concatenation."
+    echo "Output: <first_file>_concat.mp4"
+    exit 1
+fi
+
+# Check that all input files exist
+for f in "$@"; do
+    if [ ! -f "$f" ]; then
+        echo "Error: File '$f' not found"
+        exit 1
+    fi
+done
+
+# Build output filename from the first input file
+first_file="$1"
+dir=$(dirname "$first_file")
+filename=$(basename "$first_file")
+name="${filename%.*}"
+output_file="${dir}/${name}_concat.mp4"
+
+# Print input info
+echo "========== INPUTS =========="
+total_input_bytes=0
+for f in "$@"; do
+    width=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$f")
+    height=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=s=x:p=0 "$f")
+    size_bytes=$(stat -f%z "$f" 2>/dev/null || stat -c%s "$f" 2>/dev/null)
+    size_mb=$(echo "scale=2; $size_bytes / 1048576" | bc)
+    total_input_bytes=$((total_input_bytes + size_bytes))
+    echo "  $f  (${width}x${height}, ${size_mb} MB)"
+done
+total_input_mb=$(echo "scale=2; $total_input_bytes / 1048576" | bc)
+echo "Total input size: ${total_input_mb} MB"
+echo "============================"
+echo ""
+
+# Build ffmpeg filter to normalize all inputs to 1280x720 and concatenate
+n=$#
+inputs=""
+filter=""
+idx=0
+for f in "$@"; do
+    inputs="$inputs -i \"$f\""
+    filter="${filter}[${idx}:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(1280-iw)/2:(720-ih)/2:black,setsar=1[v${idx}];"
+    idx=$((idx + 1))
+done
+
+# Build concat part of the filter
+concat_inputs=""
+for ((i=0; i<n; i++)); do
+    concat_inputs="${concat_inputs}[v${i}][${i}:a]"
+done
+filter="${filter}${concat_inputs}concat=n=${n}:v=1:a=1[outv][outa]"
+
+echo "Concatenating ${n} videos into 1280x720 output..."
+echo ""
+
+# Run ffmpeg
+eval ffmpeg $inputs -filter_complex "\"${filter}\"" -map '"[outv]"' -map '"[outa]"' -c:v libx264 -crf 18 -preset medium -c:a aac -b:a 192k "\"${output_file}\""
+
+if [ $? -eq 0 ]; then
+    # Get output video info
+    output_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$output_file")
+    output_size_bytes=$(stat -f%z "$output_file" 2>/dev/null || stat -c%s "$output_file" 2>/dev/null)
+    output_size_mb=$(echo "scale=2; $output_size_bytes / 1048576" | bc)
+
+    echo ""
+    echo "========== SUMMARY =========="
+    echo "Inputs:     $# files (${total_input_mb} MB total)"
+    echo ""
+    echo "Output:     $output_file"
+    echo "Resolution: $output_resolution"
+    echo "Size:       ${output_size_mb} MB"
+    echo "============================="
+    echo ""
+    echo "Done!"
+else
+    echo "Error: ffmpeg failed"
+    exit 1
+fi
