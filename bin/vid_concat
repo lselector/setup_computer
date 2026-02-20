@@ -1,44 +1,293 @@
 #!/bin/bash
 
-# vid_concat - Concatenate two or more video files into one
+# vid_concat - Concatenate videos and/or images into one video
 # Usage: vid_concat file1.mp4 file2.mp4 [file3.mp4 ...]
-# Output: file1_concat.mp4
+#        vid_concat -j config.json
+# Output: <first_file>_concat.mp4
+#
+# Supports video files (mp4, mov, avi, mkv, etc.) and image files (jpg, jpeg, png, gif).
+# Images are converted to 4-second video clips.
+# All inputs are scaled/padded to 1280x720 (black padding, preserving aspect ratio).
+#
+# JSON format for -j option:
+# [
+#     ["Title for Video 1", "video1.mp4"],
+#     ["", "video2.mp4"],
+#     ["Title for Image", "image1.jpg"],
+#     ["", "image2.png"],
+#     ["Title for Video 3", "video3.mp4"]
+# ]
+# Each non-empty title becomes a 4-second title card (black bg, white text)
+# prepended before its video/image. Use "" for no title card.
+# Long titles are automatically word-wrapped.
 
-if [ "$#" -lt 2 ]; then
-    echo "Usage: vid_concat <file1> <file2> [file3 ...]"
-    echo "Example: vid_concat clip1.mp4 clip2.mp4 clip3.mp4"
-    echo ""
-    echo "Concatenates two or more video files into one horizontal (1280x720) video."
-    echo "All inputs are scaled/padded to 1280x720 before concatenation."
-    echo "Output: <first_file>_concat.mp4"
-    exit 1
-fi
+TITLE_DURATION=4
+TITLE_FONTSIZE=48
+TITLE_MAX_WIDTH_RATIO=0.85  # text uses at most 85% of video width
+IMAGE_DURATION=4             # how long each image is displayed (seconds)
+WIDTH=1280
+HEIGHT=720
 
-# Check that all input files exist
-for f in "$@"; do
-    if [ ! -f "$f" ]; then
-        echo "Error: File '$f' not found"
+# ---- Helper: check if a file is an image by extension ----
+is_image_file() {
+    local f="$1"
+    local ext="${f##*.}"
+    ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
+    case "$ext" in
+        jpg|jpeg|png|gif) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
+# ---- Parse arguments ----
+JSON_FILE=""
+if [ "$1" = "-j" ]; then
+    if [ -z "$2" ]; then
+        echo "Error: -j requires a JSON file argument"
         exit 1
     fi
-done
+    JSON_FILE="$2"
+    if [ ! -f "$JSON_FILE" ]; then
+        echo "Error: JSON file '$JSON_FILE' not found"
+        exit 1
+    fi
+    # Check that jq is available
+    if ! command -v jq &>/dev/null; then
+        echo "Error: 'jq' is required for JSON parsing but not found. Install with: brew install jq"
+        exit 1
+    fi
+fi
 
-# Build output filename from the first input file
-first_file="$1"
-dir=$(dirname "$first_file")
-filename=$(basename "$first_file")
+# ---- Cleanup function for temp files ----
+TEMP_FILES=()
+cleanup() {
+    for f in "${TEMP_FILES[@]}"; do
+        rm -f "$f"
+    done
+}
+trap cleanup EXIT
+
+# ---- Function: word-wrap text to fit within max width ----
+wrap_title_text() {
+    local text="$1"
+    local max_chars
+
+    # Approximate character width: fontsize * 0.55 (Helvetica average)
+    local char_width
+    char_width=$(echo "scale=0; ${TITLE_FONTSIZE} * 55 / 100" | bc)
+    local max_pixel_width
+    max_pixel_width=$(echo "scale=0; ${WIDTH} * ${TITLE_MAX_WIDTH_RATIO} / 1" | bc)
+    max_chars=$(echo "scale=0; ${max_pixel_width} / ${char_width}" | bc)
+
+    if [ "$max_chars" -lt 10 ]; then
+        max_chars=10
+    fi
+
+    # Word-wrap using fold to break at word boundaries
+    echo "$text" | fold -s -w "$max_chars"
+}
+
+# ---- Function: generate a title card video ----
+generate_title_card() {
+    local title_text="$1"
+    local outfile="$2"
+
+    # Word-wrap the title text
+    local wrapped_text
+    wrapped_text=$(wrap_title_text "$title_text")
+
+    # Count lines for vertical centering
+    local line_count
+    line_count=$(echo "$wrapped_text" | wc -l | tr -d ' ')
+    local line_height=$((TITLE_FONTSIZE + 12))  # fontsize + spacing
+    local total_text_height=$((line_count * line_height))
+    local y_start=$(( (HEIGHT - total_text_height) / 2 ))
+
+    # Build drawtext filter chain — one drawtext per line
+    local vf_filter=""
+    local line_num=0
+    while IFS= read -r line; do
+        # Escape special characters for ffmpeg drawtext
+        local escaped_line
+        escaped_line=$(echo "$line" | sed "s/\\\\/\\\\\\\\/g; s/:/\\\\:/g; s/'/\\\\'/g; s/\[/\\\\[/g; s/\]/\\\\]/g; s/;/\\\\;/g")
+
+        local y_pos=$((y_start + line_num * line_height))
+
+        if [ -n "$vf_filter" ]; then
+            vf_filter="${vf_filter},"
+        fi
+        vf_filter="${vf_filter}drawtext=text='${escaped_line}':fontsize=${TITLE_FONTSIZE}:fontcolor=white:x=(w-text_w)/2:y=${y_pos}:font=Helvetica"
+
+        line_num=$((line_num + 1))
+    done <<< "$wrapped_text"
+
+    ffmpeg -y -f lavfi -i "color=c=black:s=${WIDTH}x${HEIGHT}:d=${TITLE_DURATION}:r=30" \
+        -f lavfi -i "anullsrc=channel_layout=stereo:sample_rate=44100" \
+        -t "$TITLE_DURATION" \
+        -vf "${vf_filter}" \
+        -c:v libx264 -crf 18 -preset medium \
+        -c:a aac -b:a 192k \
+        -shortest \
+        "$outfile" 2>&1
+
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to generate title card for: $title_text"
+        exit 1
+    fi
+}
+
+# ---- Function: convert an image to a video clip ----
+image_to_video() {
+    local imgfile="$1"
+    local outfile="$2"
+
+    echo "Converting image to ${IMAGE_DURATION}s video: $imgfile"
+
+    ffmpeg -y -loop 1 -i "$imgfile" \
+        -f lavfi -i "anullsrc=channel_layout=stereo:sample_rate=44100" \
+        -t "$IMAGE_DURATION" \
+        -vf "scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,pad=${WIDTH}:${HEIGHT}:(${WIDTH}-iw)/2:(${HEIGHT}-ih)/2:black,setsar=1" \
+        -r 30 \
+        -c:v libx264 -crf 18 -preset medium \
+        -c:a aac -b:a 192k \
+        -shortest \
+        "$outfile" 2>&1
+
+    if [ $? -ne 0 ]; then
+        echo "Error: Failed to convert image to video: $imgfile"
+        exit 1
+    fi
+}
+
+# ---- Build the list of video files to concatenate ----
+declare -a ALL_FILES=()
+
+if [ -n "$JSON_FILE" ]; then
+    # Parse JSON file
+    entry_count=$(jq 'length' "$JSON_FILE")
+    if [ "$entry_count" -lt 1 ]; then
+        echo "Error: JSON file contains no entries"
+        exit 1
+    fi
+
+    echo "Reading JSON file: $JSON_FILE ($entry_count entries)"
+    echo ""
+
+    for ((i=0; i<entry_count; i++)); do
+        title=$(jq -r ".[$i][0]" "$JSON_FILE")
+        media=$(jq -r ".[$i][1]" "$JSON_FILE")
+
+        if [ ! -f "$media" ]; then
+            echo "Error: File '$media' not found (entry $((i+1)))"
+            exit 1
+        fi
+
+        # If title is non-empty, generate a title card
+        if [ -n "$title" ]; then
+            tmpfile="/tmp/vid_concat_title_${i}_$$.mp4"
+            echo "Generating title card: \"$title\""
+            generate_title_card "$title" "$tmpfile"
+            TEMP_FILES+=("$tmpfile")
+            ALL_FILES+=("$tmpfile")
+        fi
+
+        # If it's an image, convert to video clip
+        if is_image_file "$media"; then
+            img_tmpfile="/tmp/vid_concat_img_${i}_$$.mp4"
+            image_to_video "$media" "$img_tmpfile"
+            TEMP_FILES+=("$img_tmpfile")
+            ALL_FILES+=("$img_tmpfile")
+        else
+            ALL_FILES+=("$media")
+        fi
+    done
+
+    # Derive output filename from first media file in JSON
+    first_media=$(jq -r '.[0][1]' "$JSON_FILE")
+else
+    # Original mode: positional arguments
+    if [ "$#" -lt 2 ]; then
+        echo "vid_concat - Concatenate videos and/or images into one video"
+        echo ""
+        echo "Usage: vid_concat <file1> <file2> [file3 ...]"
+        echo "       vid_concat -j <config.json>"
+        echo ""
+        echo "Examples:"
+        echo "  vid_concat clip1.mp4 clip2.mp4 clip3.mp4"
+        echo "  vid_concat clip1.mp4 photo.jpg clip2.mp4"
+        echo "  vid_concat -j config.json"
+        echo ""
+        echo "Concatenates two or more video/image files into one ${WIDTH}x${HEIGHT} video."
+        echo "All inputs are scaled and padded to ${WIDTH}x${HEIGHT} (black padding,"
+        echo "preserving original aspect ratio)."
+        echo ""
+        echo "Supported video formats: mp4, mov, avi, mkv, and other ffmpeg-supported formats"
+        echo "Supported image formats: jpg, jpeg, png, gif"
+        echo "Images are displayed for ${IMAGE_DURATION} seconds each."
+        echo ""
+        echo "Output: <first_file>_concat.mp4"
+        echo ""
+        echo "JSON mode (-j):"
+        echo "  Provide a JSON file with optional titles and media paths:"
+        echo '  ['
+        echo '      ["Title for Video 1", "video1.mp4"],'
+        echo '      ["", "video2.mp4"],'
+        echo '      ["Title for Image", "image1.jpg"],'
+        echo '      ["", "image2.png"],'
+        echo '      ["Title for Video 3", "video3.mp4"]'
+        echo '  ]'
+        echo ""
+        echo "  Each non-empty title becomes a ${TITLE_DURATION}-second title card"
+        echo "  (black background, white centered text) prepended before its media."
+        echo '  Use "" (empty string) for no title card.'
+        echo "  Long titles are automatically word-wrapped."
+        exit 1
+    fi
+
+    # Check that all input files exist
+    for f in "$@"; do
+        if [ ! -f "$f" ]; then
+            echo "Error: File '$f' not found"
+            exit 1
+        fi
+    done
+
+    # Process positional arguments — convert images to video clips
+    img_idx=0
+    for f in "$@"; do
+        if is_image_file "$f"; then
+            img_tmpfile="/tmp/vid_concat_img_arg_${img_idx}_$$.mp4"
+            image_to_video "$f" "$img_tmpfile"
+            TEMP_FILES+=("$img_tmpfile")
+            ALL_FILES+=("$img_tmpfile")
+            img_idx=$((img_idx + 1))
+        else
+            ALL_FILES+=("$f")
+        fi
+    done
+
+    first_media="$1"
+fi
+
+# Build output filename from the first media file
+dir=$(dirname "$first_media")
+filename=$(basename "$first_media")
 name="${filename%.*}"
 output_file="${dir}/${name}_concat.mp4"
 
+n=${#ALL_FILES[@]}
+
 # Print input info
+echo ""
 echo "========== INPUTS =========="
 total_input_bytes=0
-for f in "$@"; do
-    width=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$f")
-    height=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=s=x:p=0 "$f")
+for f in "${ALL_FILES[@]}"; do
+    width_val=$(ffprobe -v error -select_streams v:0 -show_entries stream=width -of csv=s=x:p=0 "$f")
+    height_val=$(ffprobe -v error -select_streams v:0 -show_entries stream=height -of csv=s=x:p=0 "$f")
     size_bytes=$(stat -f%z "$f" 2>/dev/null || stat -c%s "$f" 2>/dev/null)
     size_mb=$(echo "scale=2; $size_bytes / 1048576" | bc)
     total_input_bytes=$((total_input_bytes + size_bytes))
-    echo "  $f  (${width}x${height}, ${size_mb} MB)"
+    echo "  $f  (${width_val}x${height_val}, ${size_mb} MB)"
 done
 total_input_mb=$(echo "scale=2; $total_input_bytes / 1048576" | bc)
 echo "Total input size: ${total_input_mb} MB"
@@ -46,13 +295,12 @@ echo "============================"
 echo ""
 
 # Build ffmpeg filter to normalize all inputs to 1280x720 and concatenate
-n=$#
 inputs=""
 filter=""
 idx=0
-for f in "$@"; do
+for f in "${ALL_FILES[@]}"; do
     inputs="$inputs -i \"$f\""
-    filter="${filter}[${idx}:v]scale=1280:720:force_original_aspect_ratio=decrease,pad=1280:720:(1280-iw)/2:(720-ih)/2:black,setsar=1[v${idx}];"
+    filter="${filter}[${idx}:v]scale=${WIDTH}:${HEIGHT}:force_original_aspect_ratio=decrease,pad=${WIDTH}:${HEIGHT}:(${WIDTH}-iw)/2:(${HEIGHT}-ih)/2:black,setsar=1[v${idx}];"
     idx=$((idx + 1))
 done
 
@@ -63,7 +311,7 @@ for ((i=0; i<n; i++)); do
 done
 filter="${filter}${concat_inputs}concat=n=${n}:v=1:a=1[outv][outa]"
 
-echo "Concatenating ${n} videos into 1280x720 output..."
+echo "Concatenating ${n} clips into ${WIDTH}x${HEIGHT} output..."
 echo ""
 
 # Run ffmpeg
@@ -77,7 +325,7 @@ if [ $? -eq 0 ]; then
 
     echo ""
     echo "========== SUMMARY =========="
-    echo "Inputs:     $# files (${total_input_mb} MB total)"
+    echo "Inputs:     ${n} clips (${total_input_mb} MB total)"
     echo ""
     echo "Output:     $output_file"
     echo "Resolution: $output_resolution"
