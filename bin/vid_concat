@@ -5,7 +5,8 @@
 #        vid_concat -j config.json
 # Output: <first_file>_concat.mp4
 #
-# Supports video files (mp4, mov, avi, mkv, etc.) and image files (jpg, jpeg, png, gif).
+# Supports video files (mp4, mov, avi, mkv, etc.) and image files
+# (avif, heic, jpeg, jpg, png, webp, gif, bmp).
 # Images are converted to 4-second video clips.
 # All inputs are scaled/padded to 1280x720 (black padding, preserving aspect ratio).
 #
@@ -34,7 +35,7 @@ is_image_file() {
     local ext="${f##*.}"
     ext=$(echo "$ext" | tr '[:upper:]' '[:lower:]')
     case "$ext" in
-        jpg|jpeg|png|gif) return 0 ;;
+        avif|heic|jpeg|jpg|png|webp|gif|bmp) return 0 ;;
         *) return 1 ;;
     esac
 }
@@ -87,52 +88,167 @@ wrap_title_text() {
     echo "$text" | fold -s -w "$max_chars"
 }
 
-# ---- Function: generate a title card video ----
-generate_title_card() {
+# ---- Detect whether ffmpeg supports the drawtext filter ----
+HAS_DRAWTEXT=false
+if ffmpeg -filters 2>&1 | grep -q "drawtext"; then
+    HAS_DRAWTEXT=true
+fi
+
+# ---- Function: generate a title card image using ImageMagick or Python ----
+generate_title_card_image() {
     local title_text="$1"
-    local outfile="$2"
+    local outpng="$2"
 
     # Word-wrap the title text
     local wrapped_text
     wrapped_text=$(wrap_title_text "$title_text")
 
-    # Count lines for vertical centering
-    local line_count
-    line_count=$(echo "$wrapped_text" | wc -l | tr -d ' ')
-    local line_height=$((TITLE_FONTSIZE + 12))  # fontsize + spacing
-    local total_text_height=$((line_count * line_height))
-    local y_start=$(( (HEIGHT - total_text_height) / 2 ))
+    # Replace newlines with literal \n for ImageMagick
+    local magick_text
+    magick_text=$(echo "$wrapped_text" | sed ':a;N;$!ba;s/\n/\\n/g')
 
-    # Build drawtext filter chain — one drawtext per line
-    local vf_filter=""
-    local line_num=0
-    while IFS= read -r line; do
-        # Escape special characters for ffmpeg drawtext
-        local escaped_line
-        escaped_line=$(echo "$line" | sed "s/\\\\/\\\\\\\\/g; s/:/\\\\:/g; s/'/\\\\'/g; s/\[/\\\\[/g; s/\]/\\\\]/g; s/;/\\\\;/g")
-
-        local y_pos=$((y_start + line_num * line_height))
-
-        if [ -n "$vf_filter" ]; then
-            vf_filter="${vf_filter},"
+    if command -v magick &>/dev/null; then
+        magick -size "${WIDTH}x${HEIGHT}" xc:black \
+            -gravity center -fill white -pointsize "${TITLE_FONTSIZE}" \
+            -font Helvetica -annotate +0+0 "$magick_text" \
+            "$outpng" 2>&1
+        if [ $? -eq 0 ]; then
+            return 0
         fi
-        vf_filter="${vf_filter}drawtext=text='${escaped_line}':fontsize=${TITLE_FONTSIZE}:fontcolor=white:x=(w-text_w)/2:y=${y_pos}:font=Helvetica"
+    fi
 
-        line_num=$((line_num + 1))
-    done <<< "$wrapped_text"
+    if command -v convert &>/dev/null; then
+        convert -size "${WIDTH}x${HEIGHT}" xc:black \
+            -gravity center -fill white -pointsize "${TITLE_FONTSIZE}" \
+            -font Helvetica -annotate +0+0 "$magick_text" \
+            "$outpng" 2>&1
+        if [ $? -eq 0 ]; then
+            return 0
+        fi
+    fi
 
-    ffmpeg -y -f lavfi -i "color=c=black:s=${WIDTH}x${HEIGHT}:d=${TITLE_DURATION}:r=30" \
-        -f lavfi -i "anullsrc=channel_layout=stereo:sample_rate=44100" \
-        -t "$TITLE_DURATION" \
-        -vf "${vf_filter}" \
-        -c:v libx264 -crf 18 -preset medium \
-        -c:a aac -b:a 192k \
-        -shortest \
-        "$outfile" 2>&1
+    # Fallback: use Python with Pillow
+    if command -v python3 &>/dev/null; then
+        python3 - "$title_text" "$outpng" "${WIDTH}" "${HEIGHT}" "${TITLE_FONTSIZE}" "${TITLE_MAX_WIDTH_RATIO}" <<'PYEOF'
+import sys, textwrap
+from PIL import Image, ImageDraw, ImageFont
 
-    if [ $? -ne 0 ]; then
-        echo "Error: Failed to generate title card for: $title_text"
-        exit 1
+title_text = sys.argv[1]
+outpng = sys.argv[2]
+W, H = int(sys.argv[3]), int(sys.argv[4])
+fontsize = int(sys.argv[5])
+max_width_ratio = float(sys.argv[6])
+
+img = Image.new('RGB', (W, H), 'black')
+draw = ImageDraw.Draw(img)
+
+font = None
+for fpath in ['/System/Library/Fonts/Helvetica.ttc',
+              '/System/Library/Fonts/SFNSText.ttf',
+              '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf']:
+    try:
+        font = ImageFont.truetype(fpath, fontsize)
+        break
+    except:
+        pass
+if font is None:
+    font = ImageFont.load_default()
+
+max_chars = max(10, int(W * max_width_ratio / (fontsize * 0.55)))
+wrapped = textwrap.fill(title_text, width=max_chars)
+lines = wrapped.split('\n')
+
+line_height = fontsize + 12
+total_height = len(lines) * line_height
+y_start = (H - total_height) // 2
+
+for i, line in enumerate(lines):
+    bbox = draw.textbbox((0, 0), line, font=font)
+    tw = bbox[2] - bbox[0]
+    x = (W - tw) // 2
+    y = y_start + i * line_height
+    draw.text((x, y), line, fill='white', font=font)
+
+img.save(outpng)
+PYEOF
+        if [ $? -eq 0 ]; then
+            return 0
+        fi
+    fi
+
+    echo "Error: Cannot generate title card image. Install ImageMagick (brew install imagemagick) or Python Pillow (pip install Pillow)."
+    return 1
+}
+
+# ---- Function: generate a title card video ----
+generate_title_card() {
+    local title_text="$1"
+    local outfile="$2"
+
+    if [ "$HAS_DRAWTEXT" = true ]; then
+        # Use ffmpeg drawtext filter directly
+        local wrapped_text
+        wrapped_text=$(wrap_title_text "$title_text")
+
+        local line_count
+        line_count=$(echo "$wrapped_text" | wc -l | tr -d ' ')
+        local line_height=$((TITLE_FONTSIZE + 12))
+        local total_text_height=$((line_count * line_height))
+        local y_start=$(( (HEIGHT - total_text_height) / 2 ))
+
+        local vf_filter=""
+        local line_num=0
+        while IFS= read -r line; do
+            local escaped_line
+            escaped_line=$(echo "$line" | sed "s/\\\\/\\\\\\\\/g; s/:/\\\\:/g; s/'/\\\\'/g; s/\[/\\\\[/g; s/\]/\\\\]/g; s/;/\\\\;/g")
+
+            local y_pos=$((y_start + line_num * line_height))
+
+            if [ -n "$vf_filter" ]; then
+                vf_filter="${vf_filter},"
+            fi
+            vf_filter="${vf_filter}drawtext=text='${escaped_line}':fontsize=${TITLE_FONTSIZE}:fontcolor=white:x=(w-text_w)/2:y=${y_pos}:font=Helvetica"
+
+            line_num=$((line_num + 1))
+        done <<< "$wrapped_text"
+
+        ffmpeg -y -f lavfi -i "color=c=black:s=${WIDTH}x${HEIGHT}:d=${TITLE_DURATION}:r=30" \
+            -f lavfi -i "anullsrc=channel_layout=stereo:sample_rate=44100" \
+            -t "$TITLE_DURATION" \
+            -vf "${vf_filter}" \
+            -c:v libx264 -crf 18 -preset medium \
+            -c:a aac -b:a 192k \
+            -shortest \
+            "$outfile" 2>&1
+
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to generate title card for: $title_text"
+            exit 1
+        fi
+    else
+        # Fallback: generate a title card PNG, then convert to video
+        local title_png="${outfile%.mp4}.png"
+        generate_title_card_image "$title_text" "$title_png"
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to generate title card for: $title_text"
+            exit 1
+        fi
+        TEMP_FILES+=("$title_png")
+
+        ffmpeg -y -loop 1 -i "$title_png" \
+            -f lavfi -i "anullsrc=channel_layout=stereo:sample_rate=44100" \
+            -t "$TITLE_DURATION" \
+            -vf "scale=${WIDTH}:${HEIGHT},setsar=1" \
+            -r 30 \
+            -c:v libx264 -crf 18 -preset medium \
+            -c:a aac -b:a 192k \
+            -shortest \
+            "$outfile" 2>&1
+
+        if [ $? -ne 0 ]; then
+            echo "Error: Failed to generate title card video for: $title_text"
+            exit 1
+        fi
     fi
 }
 
@@ -222,7 +338,7 @@ else
         echo "preserving original aspect ratio)."
         echo ""
         echo "Supported video formats: mp4, mov, avi, mkv, and other ffmpeg-supported formats"
-        echo "Supported image formats: jpg, jpeg, png, gif"
+        echo "Supported image formats: avif, heic, jpeg, jpg, png, webp, gif, bmp"
         echo "Images are displayed for ${IMAGE_DURATION} seconds each."
         echo ""
         echo "Output: <first_file>_concat.mp4"
