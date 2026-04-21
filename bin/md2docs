@@ -1,0 +1,219 @@
+#!/usr/bin/env python3
+"""
+Convert a Markdown file to a Microsoft Word (.docx) file.
+
+Uses pandoc (via pypandoc) for high-fidelity conversion of
+headings, lists, tables, code blocks, links, images, blockquotes,
+and footnotes.
+
+Markdown ATX headings (#, ##, ###, ...) are mapped to Word's
+built-in Heading 1 .. Heading 9 paragraph styles, so the document
+shows a proper outline in Word's Navigation pane and automatic
+table-of-contents generation works.
+
+After pandoc conversion, the script post-processes the .docx so
+that:
+  * body text uses Calibri 11pt
+  * every Heading 1 paragraph starts on a new page
+  * every Heading 2 paragraph starts on a new page
+
+Usage:
+    md2docs input.md
+    md2docs input.md output.docx
+    md2docs input.md output.docx --toc
+    md2docs input.md --reference-doc=style.docx
+    md2docs ~/notes/today.md ~/Desktop/today.docx --toc
+
+If the output path is omitted, the .docx is written next to the
+input file with a .docx extension.
+
+Options:
+    --toc                    Insert a clickable table of contents
+                             (depth = 3) at the top of the doc.
+    --reference-doc=PATH     Use PATH as the Word style template
+                             (heading fonts, sizes, spacing, ...).
+
+Requires: pandoc on PATH, pypandoc, python-docx.
+
+Created: 2026-04-19
+Last updated: 2026-04-21
+"""
+
+import shutil
+import sys
+from pathlib import Path
+
+import pypandoc
+from docx import Document
+from docx.oxml import OxmlElement
+from docx.oxml.ns import qn
+from docx.shared import Pt
+
+
+DEFAULT_FONT = "Calibri"
+DEFAULT_FONT_PT = 11
+FONT_STYLES = (
+    "Normal", "Title", "Subtitle",
+    "Heading 1", "Heading 2", "Heading 3",
+    "Heading 4", "Heading 5", "Heading 6",
+    "Heading 7", "Heading 8", "Heading 9",
+)
+PAGE_BREAK_HEADINGS = ("Heading 1", "Heading 2")
+
+
+# --------------------------------------------------------------
+def check_pandoc():
+    """Exit early if pandoc is not installed."""
+    if shutil.which("pandoc") is None:
+        print("pandoc not found on PATH.")
+        print("Install with: brew install pandoc")
+        sys.exit(1)
+
+
+# --------------------------------------------------------------
+def convert(md_path, docx_path, reference_doc=None, toc=False):
+    """Convert a markdown file to a .docx file via pandoc."""
+    fmt = (
+        "markdown"
+        "+auto_identifiers"
+        "+ascii_identifiers"
+        "+header_attributes"
+        "+implicit_header_references"
+    )
+    extra_args = [
+        "--standalone",
+        f"--resource-path={md_path.parent}",
+    ]
+    if toc:
+        extra_args.extend(["--toc", "--toc-depth=3"])
+    if reference_doc:
+        ref = Path(reference_doc).expanduser().resolve()
+        if not ref.is_file():
+            print(f"Reference doc not found: {ref}")
+            sys.exit(1)
+        extra_args.append(f"--reference-doc={ref}")
+    pypandoc.convert_file(
+        str(md_path),
+        to="docx",
+        format=fmt,
+        outputfile=str(docx_path),
+        extra_args=extra_args,
+    )
+
+
+# --------------------------------------------------------------
+def style_docx(docx_path):
+    """Apply font + page-break tweaks to the finished docx."""
+    doc = Document(str(docx_path))
+    available = {s.name for s in doc.styles}
+    for name in FONT_STYLES:
+        if name not in available:
+            continue
+        size = DEFAULT_FONT_PT if name == "Normal" else None
+        set_style_font(doc.styles[name], DEFAULT_FONT, size)
+    for name in PAGE_BREAK_HEADINGS:
+        if name in available:
+            fmt = doc.styles[name].paragraph_format
+            fmt.page_break_before = True
+    force_font_on_heading_runs(doc, DEFAULT_FONT)
+    doc.save(str(docx_path))
+
+
+# --------------------------------------------------------------
+def set_style_font(style, name, size_pt):
+    """Set font family (and size if given) on a docx style."""
+    if size_pt is not None:
+        style.font.size = Pt(size_pt)
+    rpr = style.element.get_or_add_rPr()
+    force_rfonts(rpr, name)
+
+
+# --------------------------------------------------------------
+def force_rfonts(rpr, name):
+    """Replace rPr's w:rFonts with explicit font attrs."""
+    old = rpr.find(qn("w:rFonts"))
+    if old is not None:
+        rpr.remove(old)
+    rfonts = OxmlElement("w:rFonts")
+    for attr in ("ascii", "hAnsi", "cs", "eastAsia"):
+        rfonts.set(qn(f"w:{attr}"), name)
+    rpr.insert(0, rfonts)
+
+
+# --------------------------------------------------------------
+def force_font_on_heading_runs(doc, name):
+    """Override run-level font in every heading paragraph."""
+    special = ("Title", "Subtitle")
+    for para in doc.paragraphs:
+        sname = para.style.name if para.style else ""
+        if (not sname.startswith("Heading")
+                and sname not in special):
+            continue
+        for run in para.runs:
+            rpr = run._element.get_or_add_rPr()
+            force_rfonts(rpr, name)
+
+
+# --------------------------------------------------------------
+def usage_and_exit(msg=None):
+    """Print usage (with optional error message) and exit."""
+    if msg:
+        print(msg)
+    print("Usage: md2docs input.md [output.docx] "
+          "[--toc] [--reference-doc=style.docx]")
+    sys.exit(1)
+
+
+# --------------------------------------------------------------
+def parse_options(args):
+    """Split argv into positional, toc flag, reference doc."""
+    positional = []
+    toc = False
+    reference_doc = None
+    for arg in args:
+        if arg == "--toc":
+            toc = True
+        elif arg.startswith("--reference-doc="):
+            reference_doc = arg.split("=", 1)[1]
+        elif arg in ("-h", "--help"):
+            print(__doc__)
+            sys.exit(0)
+        elif arg.startswith("-"):
+            usage_and_exit(f"Unknown option: {arg}")
+        else:
+            positional.append(arg)
+    return positional, toc, reference_doc
+
+
+# --------------------------------------------------------------
+def resolve_paths_and_opts(args):
+    """Determine input, output, and options from argv."""
+    positional, toc, reference_doc = parse_options(args)
+    if len(positional) < 1 or len(positional) > 2:
+        usage_and_exit()
+    md_path = Path(positional[0]).expanduser().resolve()
+    if not md_path.is_file():
+        print(f"Not found: {md_path}")
+        sys.exit(1)
+    if len(positional) == 2:
+        docx_path = Path(positional[1]).expanduser().resolve()
+    else:
+        docx_path = md_path.with_suffix(".docx")
+    return md_path, docx_path, reference_doc, toc
+
+
+# --------------------------------------------------------------
+def main():
+    """Parse arguments and run the conversion."""
+    check_pandoc()
+    md_path, docx_path, reference_doc, toc = \
+        resolve_paths_and_opts(sys.argv[1:])
+    convert(md_path, docx_path,
+            reference_doc=reference_doc, toc=toc)
+    style_docx(docx_path)
+    print(f"Wrote {docx_path}")
+
+
+# --------------------------------------------------------------
+if __name__ == "__main__":
+    main()

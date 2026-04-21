@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""
+Convert a Markdown file to a standalone HTML file.
+
+Produces a self-contained HTML document with embedded
+CSS (no external stylesheets), so the output file can
+be emailed or opened directly in any browser.
+
+Usage:
+    md2webpage input.md
+    md2webpage input.md output.html
+    md2webpage ~/notes/today.md ~/Desktop/today.html
+
+If the output path is omitted, the HTML is written
+next to the input file with a .html extension.
+
+Created: 2026-04-19
+Last updated: 2026-04-19
+"""
+
+import sys
+from pathlib import Path
+
+import markdown
+
+
+DEFAULT_CSS = """
+body {
+    font-family: -apple-system, "Helvetica Neue",
+                 Helvetica, Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.55;
+    color: #222;
+    max-width: 860px;
+    margin: 2em auto;
+    padding: 0 1.2em;
+}
+h1, h2, h3, h4 { color: #111; margin-top: 1.2em; }
+h1 { border-bottom: 1px solid #ddd; padding-bottom: 4px; }
+h2 { border-bottom: 1px solid #eee; padding-bottom: 3px; }
+a { color: #0a58ca; text-decoration: none; }
+a:hover { text-decoration: underline; }
+code {
+    background: #f4f4f4;
+    padding: 2px 5px;
+    border-radius: 3px;
+    font-family: "Menlo", "Courier New", monospace;
+    font-size: 0.92em;
+}
+pre {
+    background: #f6f8fa;
+    padding: 10px 12px;
+    border-radius: 5px;
+    overflow-x: auto;
+    font-size: 0.9em;
+}
+pre code { background: none; padding: 0; }
+table {
+    border-collapse: collapse;
+    margin: 1em 0;
+    width: 100%;
+}
+th, td {
+    border: 1px solid #ccc;
+    padding: 6px 10px;
+    text-align: left;
+}
+th { background: #f2f2f2; }
+blockquote {
+    border-left: 4px solid #ccc;
+    padding: 0 12px;
+    color: #555;
+    margin: 1em 0;
+}
+img { max-width: 100%; }
+hr { border: 0; border-top: 1px solid #ddd; }
+"""
+
+
+# --------------------------------------------------------------
+def md_to_html(md_text, title):
+    """Convert markdown text to a standalone HTML document."""
+    extensions = [
+        "fenced_code",
+        "tables",
+        "codehilite",
+        "toc",
+        "sane_lists",
+    ]
+    body = markdown.markdown(md_text, extensions=extensions)
+    return (
+        "<!doctype html>\n"
+        "<html>\n<head>\n"
+        "<meta charset='utf-8'>\n"
+        "<meta name='viewport' "
+        "content='width=device-width, initial-scale=1'>\n"
+        f"<title>{title}</title>\n"
+        f"<style>{DEFAULT_CSS}</style>\n"
+        "</head>\n<body>\n"
+        f"{body}\n"
+        "</body>\n</html>\n"
+    )
+
+
+# --------------------------------------------------------------
+def convert(md_path, html_path):
+    """Convert a markdown file to a standalone HTML file."""
+    md_text = md_path.read_text(encoding="utf-8")
+    html_str = md_to_html(md_text, md_path.stem)
+    html_path.write_text(html_str, encoding="utf-8")
+    print(f"Wrote {html_path}")
+
+
+# --------------------------------------------------------------
+def resolve_paths(args):
+    """Determine input and output paths from argv."""
+    if len(args) < 1 or len(args) > 2:
+        print("Usage: md2webpage input.md [output.html]")
+        sys.exit(1)
+    md_path = Path(args[0]).expanduser().resolve()
+    if not md_path.is_file():
+        print(f"Not found: {md_path}")
+        sys.exit(1)
+    if len(args) == 2:
+        html_path = Path(args[1]).expanduser().resolve()
+    else:
+        html_path = md_path.with_suffix(".html")
+    return md_path, html_path
+
+
+# --------------------------------------------------------------
+def main():
+    """Parse arguments and run the conversion."""
+    md_path, html_path = resolve_paths(sys.argv[1:])
+    convert(md_path, html_path)
+
+
+# --------------------------------------------------------------
+if __name__ == "__main__":
+    main()
