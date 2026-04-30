@@ -1,37 +1,19 @@
 
+"""
 # --------------------------------------------------------------
 # speedtest_log.py - by Lev Selector
 # Utility to monitor internet speed on a Mac.
-# Every 10 min refreshes image $HOME/internet_speed_test/sptest.png
+# Every 5 min refreshes image $HOME/Desktop/sptest.png
 # 
-# 
-# To make it work:
-#   create directory $HOME/internet_speed_test/
-#   and copy there the following files:
-#      speedtest.py
-#      log_speedtest.py
-#      speedtest.log
-#      speedtest.ipynb
-# 
-# cd ~/Desktop
-# ln -s /Users/levselector/internet_speed_test/sptest.png sptest.png
-
-# Note: the jupyter notebook helps to debug code
-# (in case some libraries are missing).
+# Add the following entry to the crontab:
+# */5 * * * * bash -c 'cd ~/; source .bashrc; cd ~/Documents/GitHub/setup_computer/internet_speed_test; python speedtest_log.py >> /tmp/speedtest.err 2>&1'
 #
-# Then add the following entry to the crontab:
-# 
-# # run internet speed test every 10 min
-# */10 * * * * bash -c 'cd ~/; source .bashrc; cd ~/internet_speed_test; python speedtest_log.py >> speedtest.err 2>&1'
-# 
-# 
-# Note - the original code:
-#     https://www.accelebrate.com/blog/pandas-bandwidth-python-tutorial-plotting-results-internet-speed-tests/
-#     https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py
-# 
-# See there how to parse the log file and show graphics
+# Requires the official Ookla speedtest CLI:
+#   brew tap teamookla/speedtest
+#   brew install speedtest
 # --------------------------------------------------------------
-import sys, os
+"""
+import sys, os, json
 import logging, datetime
 import matplotlib.pyplot as plt
 from matplotlib import dates, rcParams
@@ -40,10 +22,10 @@ import pandas as pd
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
-SPEEDTEST_CMD = './speedtest.py'
-LOG_FILE      = 'speedtest.log'
-ERR_FILE      = 'speedtest.err'
-IMG_FILE      = os.getenv('HOME') + '/internet_speed_test/sptest.png'
+SPEEDTEST_CMD = 'speedtest --accept-license --accept-gdpr -f json'
+LOG_FILE      = '/tmp/speedtest.log'
+ERR_FILE      = '/tmp/speedtest.err'
+IMG_FILE      = os.getenv('HOME') + '/Desktop/sptest.png'
 
 # --------------------------------------------------------------
 def setup_logging():
@@ -57,25 +39,23 @@ def setup_logging():
 def get_speedtest_results():
     """
     # Run test and parse results.
-    # Returns tuple of ping speed, download speed, and upload speed,
+    # Returns tuple of ping (ms), download (Mbps), upload (Mbps),
     # or raises ValueError if unable to parse data.
     """
-    ping = download = upload = None
+    with os.popen(SPEEDTEST_CMD) as speedtest_output:
+        raw = speedtest_output.read()
 
-    with os.popen(SPEEDTEST_CMD + ' --simple') as speedtest_output:
-        for line in speedtest_output:
-            label, value, unit = line.split()
-            if 'Ping' in label:
-              ping = float(value)
-            elif 'Download' in label:
-              download = float(value)
-            elif 'Upload' in label:
-              upload = float(value)
+    try:
+        data = json.loads(raw)
+        ping     = float(data['ping']['latency'])
+        download = float(data['download']['bandwidth']) * 8 / 1_000_000
+        upload   = float(data['upload']['bandwidth'])   * 8 / 1_000_000
+    except (ValueError, KeyError, TypeError):
+        raise ValueError('TEST FAILED')
 
-        if all((ping, download, upload)): # if all 3 values were parsed
-          return ping, download, upload
-        else:
-          raise ValueError('TEST FAILED')
+    if all((ping, download, upload)):
+        return ping, download, upload
+    raise ValueError('TEST FAILED')
 
 # --------------------------------------------------------------
 def make_plot(plt, df, row_index=1, nhours=2):
@@ -111,10 +91,10 @@ def make_plot(plt, df, row_index=1, nhours=2):
         arr_ts += [val+delta]  # add shifted by delta
 
     ax.xaxis.set_ticks(arr_ts)
-    h_fmt = dates.DateFormatter('%m/%d %H:%M')
+    h_fmt = dates.DateFormatter('%Y-%m-%d %H:%M')
     ax.xaxis.set_major_formatter(h_fmt)
     # ---------------------------------
-    ax.xaxis.set_tick_params(labelsize=9)
+    ax.xaxis.set_tick_params(labelsize=7)
     ax.yaxis.set_tick_params(labelsize=9)
 
     fg.subplots_adjust(bottom=.25)
@@ -123,12 +103,16 @@ def make_plot(plt, df, row_index=1, nhours=2):
 # --------------------------------------------------------------
 def read_data():
     df = pd.io.parsers.read_csv(
-        'speedtest.log',
+        LOG_FILE,
         names='date time ping download upload'.split(),
         header=None,
         sep=r'\s+',
-        parse_dates={'timestamp':[0,1]},
         na_values=['TEST','FAILED'])
+
+    df['timestamp'] = pd.to_datetime(
+        df['date'].astype(str) + ' ' + df['time'].astype(str),
+        errors='coerce')
+    df = df.drop(columns=['date', 'time'])
 
     for col in 'ping download upload'.split():
         df[col] = df[col].fillna(0.0)
