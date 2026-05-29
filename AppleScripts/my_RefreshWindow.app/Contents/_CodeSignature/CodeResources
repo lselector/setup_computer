@@ -4,17 +4,13 @@
 <dict>
 	<key>files</key>
 	<dict>
-		<key>Resources/Assets.car</key>
-		<data>
-		8S1L2qkkMjL9zyWYL+bJcsPUZOg=
-		</data>
 		<key>Resources/Scripts/main.scpt</key>
 		<data>
 		gKTmREiknemLNKKZxcUm4EJS6WU=
 		</data>
 		<key>Resources/applet.icns</key>
 		<data>
-		SBwJZKFuPq5ctVyO+VUPjMqPLKc=
+		0YA6d7VUTGtgKJgEptHnc5pBhuw=
 		</data>
 		<key>Resources/applet.rsrc</key>
 		<data>
@@ -23,17 +19,6 @@
 	</dict>
 	<key>files2</key>
 	<dict>
-		<key>Resources/Assets.car</key>
-		<dict>
-			<key>hash</key>
-			<data>
-			8S1L2qkkMjL9zyWYL+bJcsPUZOg=
-			</data>
-			<key>hash2</key>
-			<data>
-			HAI4+5gJrrqVGo9bBuNYD84SlM4HMccnyiL8JmmDUzw=
-			</data>
-		</dict>
 		<key>Resources/Scripts/main.scpt</key>
 		<dict>
 			<key>hash</key>
@@ -49,11 +34,11 @@
 		<dict>
 			<key>hash</key>
 			<data>
-			SBwJZKFuPq5ctVyO+VUPjMqPLKc=
+			0YA6d7VUTGtgKJgEptHnc5pBhuw=
 			</data>
 			<key>hash2</key>
 			<data>
-			0ACYTfX4asTasGjfNyaQqN6VVrEpJdFhKSnjH/OMYXE=
+			KKYeGKyJZWl4CgZedmOX9dWop6Cye/3ITST1OnHBzuY=
 			</data>
 		</dict>
 		<key>Resources/applet.rsrc</key>
