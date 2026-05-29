@@ -5,12 +5,10 @@
 	<key>CFBundleAllowMixedLocalizations</key>
 	<true/>
 	<key>CFBundleDevelopmentRegion</key>
-	<string>en</string>
+	<string>English</string>
 	<key>CFBundleExecutable</key>
 	<string>applet</string>
 	<key>CFBundleIconFile</key>
-	<string>applet</string>
-	<key>CFBundleIconName</key>
 	<string>applet</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.apple.ScriptEditor.id.NewTextFile2</string>
@@ -20,6 +18,8 @@
 	<string>NewTextFile2</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1.0</string>
 	<key>CFBundleSignature</key>
 	<string>aplt</string>
 	<key>LSMinimumSystemVersionByArchitecture</key>
@@ -51,7 +51,24 @@
 	<string>This script needs access to Siri to run.</string>
 	<key>NSSystemAdministrationUsageDescription</key>
 	<string>This script needs access to administer this system to run.</string>
-	<key>OSAAppletShowStartupScreen</key>
-	<false/>
+	<key>WindowState</key>
+	<dict>
+		<key>bundleDividerCollapsed</key>
+		<true/>
+		<key>bundlePositionOfDivider</key>
+		<real>0.0</real>
+		<key>dividerCollapsed</key>
+		<false/>
+		<key>eventLogLevel</key>
+		<integer>2</integer>
+		<key>name</key>
+		<string>ScriptWindowState</string>
+		<key>positionOfDivider</key>
+		<real>421</real>
+		<key>savedFrame</key>
+		<string>20 157 700 672 0 0 1440 877 </string>
+		<key>selectedTab</key>
+		<string>result</string>
+	</dict>
 </dict>
 </plist>
