@@ -19,6 +19,7 @@ mysource () {
 mysource $HOME/.bash_aliases
 mysource $HOME/.mygit
 mysource $HOME/.myvv
+# export BROWSER=wslview  # this is for MS Windows WSL
 # ------------------------------------
 # avoid activating conda virtual environments
 conda config --set auto_activate_base false 
