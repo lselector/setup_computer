@@ -1,7 +1,14 @@
 #!/bin/bash
-repo=$(git remote get-url origin | sed 's/git@github.com://;s/.git$//')
+# export BROWSER=wslview  # this is for MS Windows WSL, add this to .bashrc
+
+# If we are not inside a git repo with a github origin,
+# just open the user's github page.
+repo=$(git remote get-url origin 2>/dev/null | sed 's/git@github.com://;s|https://github.com/||;s/.git$//')
+if [ -z "$repo" ]; then
+    open "https://github.com/lselector"
+    exit 0
+fi
+
 branch=$(git branch --show-current)
 path=$(git rev-parse --show-prefix | sed 's/\/$//')
-# export BROWSER=wslview  # this is for MS Windows WSL, add this to .bashrc
 open "https://github.com/$repo/tree/$branch/$path"
-
