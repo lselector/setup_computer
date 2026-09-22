@@ -22,8 +22,5 @@
     decorate = short
 [push]
     default = tracking
-[branch]
-    autosetuprebase = false
 [pull]
     rebase = false
-

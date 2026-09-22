@@ -29,7 +29,6 @@ PATH=$PATH:/usr/bin
 PATH=$PATH:/bin
 PATH=$PATH:/usr/sbin
 PATH=$PATH:/sbin
-PATH=$PATH:/Applications/Postgres.app/Contents/Versions/15/bin
 PATH="$HOME/.local/bin:$PATH"     # for claude CLI
 export PATH
 
@@ -38,43 +37,18 @@ PYTHONPATH=$PYTHONPATH:$HOME/Documents/GitHub/setup_computer/py_lib
 export PYTHONPATH
 
 # ------------------------------------
-export JAVA_HOME='/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home'
-export JRE_HOME=$JAVA_HOME
-# ------------------------------------
 export SSHDIR=$HOME/.ssh
 export HISTSIZE=10000
 export HISTFILESIZE=100000
-# ---------------------------------------------------------------
+# ------------------------------------
 # function to source file only if it exists
 mysource () {
     [[ -f "$1" ]] && source "$1"
 }
-# ---------------------------------------------------------------
+# ------------------------------------
 mysource $HOME/.myaliases # aliases for bash and fish
 mysource $HOME/.mygit
 mysource $HOME/.myvv
-# --------------------------------------------------------------
-mysource $HOME/.docker/init-bash.sh   # Docker Desktop
-mysource $HOME/.cargo/env             # Rust
+# ------------------------------------
 mysource $HOME/.venvs/standard/bin/activate
-
-# --------------------------------------------------------------
-# Remap Google Drive path to ~/docs
-GDRIVE_EMAIL="your.name@gmail.com"
-GDRIVE_PATH1="$HOME/My Drive ($GDRIVE_EMAIL)"
-GDRIVE_PATH2="$HOME/Library/CloudStorage"
-GDRIVE_PATH2+="/GoogleDrive-$GDRIVE_EMAIL"
-GDRIVE_PATH2+="/My Drive"
-DOCS_PATH="$HOME/docs"
-case "$PWD" in
-    "$GDRIVE_PATH1"*)
-        NEW_DIR="${PWD/$GDRIVE_PATH1/$DOCS_PATH}"
-        cd "$NEW_DIR" 2>/dev/null
-        ;;
-    "$GDRIVE_PATH2"*)
-        NEW_DIR="${PWD/$GDRIVE_PATH2/$DOCS_PATH}"
-        cd "$NEW_DIR" 2>/dev/null
-        ;;
-esac
-unset GDRIVE_EMAIL GDRIVE_PATH1 GDRIVE_PATH2 DOCS_PATH NEW_DIR
-# --------------------------------------------------------------
+# ------------------------------------

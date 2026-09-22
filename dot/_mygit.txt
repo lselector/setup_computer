@@ -2,7 +2,7 @@
 
 # note - Git also automatically reads the ~/.gitconfig file.
 
-# --------------------------------------------------------------
+# ------------------------------------
 # git completion for the running shell
 if [ -n "$ZSH_VERSION" ]; then
     [ -f ~/.git-completion.zsh ] && . ~/.git-completion.zsh
