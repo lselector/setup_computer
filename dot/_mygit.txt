@@ -3,11 +3,10 @@
 # note - Git also automatically reads the ~/.gitconfig file.
 
 # --------------------------------------------------------------
-if [ -f ~/.git-completion.bash ]; then
-    . ~/.git-completion.bash
+# git completion for the running shell
+if [ -n "$ZSH_VERSION" ]; then
+    [ -f ~/.git-completion.zsh ] && . ~/.git-completion.zsh
+elif [ -n "$BASH_VERSION" ]; then
+    [ -f ~/.git-completion.bash ] && . ~/.git-completion.bash
 fi
-
-# --------------------------------------------------------------
-# gist, gitup, qq, gg were moved from here 
-# into small bash scripts in "bin" directory in path
 

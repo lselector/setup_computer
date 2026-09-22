@@ -1,26 +1,80 @@
 # ------------------------------------
 # .bashrc for local machine only
+# (plain bash; see _bashrc_fish.txt to jump into fish)
 # ------------------------------------
+export SHELL=/bin/bash
+export BASH_SILENCE_DEPRECATION_WARNING=1
 export PYTHONDONTWRITEBYTECODE=1
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+export CLAUDE_CODE_SHELL=/bin/bash   # Claude Code tools run in bash
 export PROMPT_COMMAND='PS1_PATH=$(sed "s:\([^/\.]\)[^/]*/:\1/:g" <<< ${PWD/#$HOME/\~})'
-export PS1='\u@\h:$PS1_PATH\$ '
-export BASH_SILENCE_DEPRECATION_WARNING=1  # for MacOS
+export PS1='$PS1_PATH\$ '
+
+# ------------------------------------ API keys
+# Fill in locally. Never commit real values.
+# export OPENAI_API_KEY='...'
+# export GEMINI_API_KEY='...'
+# export CLOUDFLARE_API_TOKEN='...'
+# export H4_TOKEN='...'   # Hugging Face
+# Do NOT set CLAUDE_CONFIG_DIR=$HOME. It replaces ~/.claude
+# wholesale, so ~/.claude/settings.json and its hooks are
+# silently ignored and config/transcripts scatter into $HOME.
+# ~/.claude is the default; no export is needed.
+# ------------------------------------
+PATH=$PATH:.
+PATH=$PATH:$HOME/docs/bin
+PATH=$PATH:/opt/homebrew/opt/ffmpeg-full/bin
+PATH=/opt/homebrew/bin:$PATH:/usr/local/bin
+PATH=$PATH:/usr/bin
+PATH=$PATH:/bin
+PATH=$PATH:/usr/sbin
+PATH=$PATH:/sbin
+PATH=$PATH:/Applications/Postgres.app/Contents/Versions/15/bin
+PATH="$HOME/.local/bin:$PATH"     # for claude CLI
+export PATH
+
+PYTHONPATH=.:./py_lib:$HOME/docs/py_lib
+PYTHONPATH=$PYTHONPATH:$HOME/Documents/GitHub/setup_computer/py_lib
+export PYTHONPATH
+
+# ------------------------------------
+export JAVA_HOME='/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home'
+export JRE_HOME=$JAVA_HOME
+# ------------------------------------
 export SSHDIR=$HOME/.ssh
 export HISTSIZE=10000
-export HISTFILESIZE=10000
-export PATH="$HOME/miniconda3/bin:$PATH"
-PYTHONPATH=".:./py_lib:$HOME/py_lib:$HOME/docs/py_lib:$HOME/Documents/GitHub/setup_computer/py_lib"
-# ------------------------------------
+export HISTFILESIZE=100000
+# ---------------------------------------------------------------
 # function to source file only if it exists
 mysource () {
     [[ -f "$1" ]] && source "$1"
 }
-# ------------------------------------
-mysource $HOME/.bash_aliases
+# ---------------------------------------------------------------
+mysource $HOME/.myaliases # aliases for bash and fish
 mysource $HOME/.mygit
 mysource $HOME/.myvv
-# export BROWSER=wslview  # this is for MS Windows WSL
-# ------------------------------------
-# avoid activating conda virtual environments
-conda config --set auto_activate_base false 
-# ------------------------------------
+# --------------------------------------------------------------
+mysource $HOME/.docker/init-bash.sh   # Docker Desktop
+mysource $HOME/.cargo/env             # Rust
+mysource $HOME/.venvs/standard/bin/activate
+
+# --------------------------------------------------------------
+# Remap Google Drive path to ~/docs
+GDRIVE_EMAIL="your.name@gmail.com"
+GDRIVE_PATH1="$HOME/My Drive ($GDRIVE_EMAIL)"
+GDRIVE_PATH2="$HOME/Library/CloudStorage"
+GDRIVE_PATH2+="/GoogleDrive-$GDRIVE_EMAIL"
+GDRIVE_PATH2+="/My Drive"
+DOCS_PATH="$HOME/docs"
+case "$PWD" in
+    "$GDRIVE_PATH1"*)
+        NEW_DIR="${PWD/$GDRIVE_PATH1/$DOCS_PATH}"
+        cd "$NEW_DIR" 2>/dev/null
+        ;;
+    "$GDRIVE_PATH2"*)
+        NEW_DIR="${PWD/$GDRIVE_PATH2/$DOCS_PATH}"
+        cd "$NEW_DIR" 2>/dev/null
+        ;;
+esac
+unset GDRIVE_EMAIL GDRIVE_PATH1 GDRIVE_PATH2 DOCS_PATH NEW_DIR
+# --------------------------------------------------------------

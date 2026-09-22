@@ -1,0 +1,49 @@
+# ------------------------------------
+# .zshenv - environment for EVERY zsh
+# (terminals, scripts, Claude Code tools).
+# Mirrors the env part of ~/.bashrc.
+# No output, no aliases, no prompt here.
+# ~/.zshrc re-sources this file after
+# macOS path_helper reorders PATH.
+# ------------------------------------
+typeset -U path   # no duplicate PATH entries on re-source
+
+export PYTHONDONTWRITEBYTECODE=1
+export VIRTUAL_ENV_DISABLE_PROMPT=1
+export CLAUDE_CODE_SHELL=/bin/bash   # Claude Code tools run in bash
+
+# ------------------------------------ API keys
+# Fill in locally. Never commit real values.
+# export OPENAI_API_KEY='...'
+# export GEMINI_API_KEY='...'
+# export CLOUDFLARE_API_TOKEN='...'
+# export H4_TOKEN='...'   # Hugging Face
+# ------------------------------------
+PATH=$PATH:.
+PATH=$PATH:$HOME/docs/bin
+PATH=$PATH:/opt/homebrew/opt/ffmpeg-full/bin
+PATH=/opt/homebrew/bin:$PATH:/usr/local/bin
+PATH=$PATH:/usr/bin
+PATH=$PATH:/bin
+PATH=$PATH:/usr/sbin
+PATH=$PATH:/sbin
+PATH=$PATH:/Applications/Postgres.app/Contents/Versions/15/bin
+PATH=$PATH:$HOME/.cache/lm-studio/bin   # LM Studio CLI (lms)
+PATH="$HOME/.local/bin:$PATH"     # for claude CLI
+export PATH
+
+PYTHONPATH=.:./py_lib:$HOME/docs/py_lib
+PYTHONPATH=$PYTHONPATH:$HOME/Documents/GitHub/setup_computer/py_lib
+export PYTHONPATH
+
+# ------------------------------------
+export JAVA_HOME='/Library/Internet Plug-Ins/JavaAppletPlugin.plugin/Contents/Home'
+export JRE_HOME=$JAVA_HOME
+export SSHDIR=$HOME/.ssh
+# ------------------------------------
+# Rust
+[[ -f "$HOME/.cargo/env" ]] && . "$HOME/.cargo/env"
+# Python venv (last, so its bin is first in PATH)
+VENV_ACTIVATE=$HOME/.venvs/standard/bin/activate
+[[ -f "$VENV_ACTIVATE" ]] && source "$VENV_ACTIVATE"
+unset VENV_ACTIVATE

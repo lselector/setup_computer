@@ -1,41 +1,54 @@
-# -----------------------------------------------
-# zsh config
-# -----------------------------------------------
-prompt_short_path() {
-  echo "${PWD/#$HOME/~}" | sed 's:\([^/\.]\)[^/]*/:\1/:g'
-}
-setopt PROMPT_SUBST
-PROMPT='%n@%m:$(prompt_short_path)$ '
-# -----------------------------------------------
-eval "$(/opt/homebrew/bin/brew shellenv)"
-export PATH="/opt/homebrew/opt/python@3.13/libexec/bin:$PATH"
-export PATH="$HOME/docs/bin:$PATH"
-export PYTHONPATH=".:./py_lib:$HOME/docs/py_lib"
-export PYTHONDONTWRITEBYTECODE=1
-# -----------------------------------------------
-export SSHDIR=$HOME/.ssh
-export HISTSIZE=10000
-export SAVEHIST=10000
-export HISTFILE=~/.zsh_history
-# -----------------------------------------------
-alias fd='/opt/homebrew/bin/fd -iI'
-alias ls='/bin/ls -G'
-alias  ll='/bin/ls -lFG'
-alias lll='/bin/ls -alFG'
-alias  ii='export QT_QPA_PLATFORM='offscreen';ipython'
-alias  nb='jupyter notebook'
-alias clear="clear && printf '\e[3J'"     # clear screen and scrollback
-alias hist="cat $HISTFILE"
-# -----------------------------------------------
-bindkey "^T" forward-search-history
-bindkey "\e[A" history-search-backward
-bindkey "\e[B" history-search-forward
-# -----------------------------------------------
-path() {
-  print -l ${(s.:.)PATH}
-}
-# -------------------------------------------------
-pypath() {
-  print -l ${(s.:.)PYTHONPATH}
-}
+# ------------------------------------
+# .zshrc - interactive zsh only.
+# Mirrors the interactive part of ~/.bashrc.
+# Environment lives in ~/.zshenv.
+# ------------------------------------
+# Re-apply env: macOS /etc/zprofile (path_helper)
+# moved system dirs ahead of ours in login shells.
+source ~/.zshenv
 
+# ------------------------------------ prompt
+# Same as bash: ~/D/G/seminar/work$
+setopt PROMPT_SUBST
+precmd () {
+    PS1_PATH=$(sed "s:\([^/\.]\)[^/]*/:\1/:g" <<< ${PWD/#$HOME/\~})
+}
+PROMPT='$PS1_PATH%(!.#.$) '
+
+# ------------------------------------ history
+HISTFILE=$HOME/.zsh_history
+HISTSIZE=10000
+SAVEHIST=100000
+
+# ---------------------------------------------------------------
+# function to source file only if it exists
+mysource () {
+    [[ -f "$1" ]] && source "$1"
+}
+# ---------------------------------------------------------------
+mysource $HOME/.myaliases # aliases for bash and fish
+mysource $HOME/.mygit
+autoload -Uz compinit && compinit   # after .mygit sets fpath
+mysource $HOME/.myvv
+# ---------------------------------------------------------------
+mysource $HOME/.docker/init-zsh.sh   # Docker Desktop
+
+# --------------------------------------------------------------
+# Remap Google Drive path to ~/docs
+GDRIVE_EMAIL="your.name@gmail.com"
+GDRIVE_PATH1="$HOME/My Drive ($GDRIVE_EMAIL)"
+GDRIVE_PATH2="$HOME/Library/CloudStorage"
+GDRIVE_PATH2+="/GoogleDrive-$GDRIVE_EMAIL"
+GDRIVE_PATH2+="/My Drive"
+DOCS_PATH="$HOME/docs"
+case "$PWD" in
+    "$GDRIVE_PATH1"*)
+        NEW_DIR="${PWD/$GDRIVE_PATH1/$DOCS_PATH}"
+        cd "$NEW_DIR" 2>/dev/null
+        ;;
+    "$GDRIVE_PATH2"*)
+        NEW_DIR="${PWD/$GDRIVE_PATH2/$DOCS_PATH}"
+        cd "$NEW_DIR" 2>/dev/null
+        ;;
+esac
+unset GDRIVE_EMAIL GDRIVE_PATH1 GDRIVE_PATH2 DOCS_PATH NEW_DIR
