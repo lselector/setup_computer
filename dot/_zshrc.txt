@@ -7,12 +7,13 @@
 # moved system dirs ahead of ours in login shells.
 source ~/.zshenv
 # ------------------------------------ prompt
-# Same as bash: ~/D/G/seminar/work$
+# Same as bash: ~/D/G/seminar/work (master)$
 setopt PROMPT_SUBST
 precmd () {
     PS1_PATH=$(sed "s:\([^/\.]\)[^/]*/:\1/:g" <<< ${PWD/#$HOME/\~})
+    PS1_GIT=$(git branch --show-current 2>/dev/null)
 }
-PROMPT='$PS1_PATH%(!.#.$) '
+PROMPT='$PS1_PATH${PS1_GIT:+ ($PS1_GIT)}%(!.#.$) '
 # ------------------------------------ history
 HISTFILE=$HOME/.zsh_history
 HISTSIZE=10000

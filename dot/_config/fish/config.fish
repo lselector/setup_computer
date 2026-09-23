@@ -15,7 +15,9 @@ function fish_prompt
         echo -n (set_color brred)"$USER"(set_color white)'@'(set_color yellow)(prompt_hostname)' '
     end
 
-    echo -n (set_color blue)(prompt_pwd)' '
+    echo -n (set_color blue)(prompt_pwd)
+    echo -n (set_color magenta)(fish_git_prompt)  # ' (branch)' in a repo
+    echo -n ' '
 
     set_color -o
     if test "$USER" = 'root'

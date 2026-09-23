@@ -7,8 +7,8 @@ export BASH_SILENCE_DEPRECATION_WARNING=1
 export PYTHONDONTWRITEBYTECODE=1
 export VIRTUAL_ENV_DISABLE_PROMPT=1
 export CLAUDE_CODE_SHELL=/bin/bash   # Claude Code tools run in bash
-export PROMPT_COMMAND='PS1_PATH=$(sed "s:\([^/\.]\)[^/]*/:\1/:g" <<< ${PWD/#$HOME/\~})'
-export PS1='$PS1_PATH\$ '
+export PROMPT_COMMAND='PS1_PATH=$(sed "s:\([^/\.]\)[^/]*/:\1/:g" <<< ${PWD/#$HOME/\~}); PS1_GIT=$(git branch --show-current 2>/dev/null)'
+export PS1='$PS1_PATH${PS1_GIT:+ ($PS1_GIT)}\$ '   # ~/D/G/repo (main)$
 
 # ------------------------------------ API keys
 # Fill in locally. Never commit real values.
