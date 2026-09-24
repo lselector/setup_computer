@@ -2,11 +2,19 @@
 
 """
 # gistall.py
-# checks status of all repos under ~/Documents/GitHub
-# using the list in "$HOME/.gistall"
+# checks status of all git repos found in
+#   ~/Documents/GitHub/*  and  ~/Documents/GitHub/*/*
 # It effectively runs "gist" command in all repos directories.
 # To use it, create a shell wrapper "bin/gistall"
 #    chmod +x ~/bin/gistall
+#
+# Usage:
+#   gistall          # fetch, diff, status in every repo
+#   gistall -v       # verbose output
+#   gistall -u       # pull updates from remote
+#   gistall -l       # list found git repos and exit
+#
+# Updated: 2026-09-24 (auto-discover repos, drop ~/.gistall)
 """
 
 import os
@@ -33,7 +41,7 @@ def make_cmd_template(bag):
     """
     # returns template string with shell commands
     """
-    ss = """cd __REPO_DIR__; echo "__SEP__" `pwd`;""" 
+    ss = """cd "__REPO_DIR__"; echo "__SEP__" `pwd`;""" 
     if bag.update_from_remote:
         ss += """ git stash clear;
                   git stash -q;
@@ -78,95 +86,36 @@ def process_cmd_args(bag):
     parser.add_argument('--update', '-update', '-u', 
         action='store_true',  dest='arg_update', default=False,
         help="update from remote server")
-    parser.add_argument('--check', '-check', '-c',
-        action='store_true',  dest='arg_check', default=False,
-        help="check .gistall list against actual directories under ~/Documents/GitHub")
+    parser.add_argument('--list', '-list', '-l',
+        action='store_true',  dest='arg_list', default=False,
+        help="list git repos found and exit")
     bag.arg_raw = parser.parse_args()
-    bag.verbose = False
-    bag.update_from_remote = False
-    bag.check_dirs = False
-    if bag.arg_raw.arg_verbose:
-        bag.verbose = True
-    if bag.arg_raw.arg_update:
-        bag.update_from_remote = True
-    if bag.arg_raw.arg_check:
-        bag.check_dirs = True
+    bag.verbose = bag.arg_raw.arg_verbose
+    bag.update_from_remote = bag.arg_raw.arg_update
+    bag.list_repos = bag.arg_raw.arg_list
+
+# ---------------------------------------------------------------
+def subdirs(parent):
+    """Return sorted names of non-hidden subdirectories."""
+    return sorted(
+        d for d in os.listdir(parent)
+        if not d.startswith('.')
+        and os.path.isdir(os.path.join(parent, d)))
 
 # ---------------------------------------------------------------
 def set_bag_repo_dirs(bag):
-    """
-    # populate bag.repo_dirs - a list of repositories to go through
-    # reads the list from file ~/.gistall  
-    """
-    mylist = [ ] # min list is empty
-    bag.dot_gistall = bag.home + "/.gistall"
-    if os.path.isfile(bag.dot_gistall):
-        lines = slurp(bag.dot_gistall).split("\n") 
-        for line in lines:
-            myword = line.strip()
-            mydir  = bag.root_dir + "/" + myword
-            if len(myword) and (myword[0] != '#') and os.path.isdir(mydir):
-                mylist.append(myword)
-    bag.repo_dirs = sorted(set(mylist)) # remove duplicates and order
-
-# ---------------------------------------------------------------
-def check_dirs_vs_gistall(bag):
-    """
-    # Compare .gistall list against actual directories under ~/Documents/GitHub
-    # Reports directories that may need to be added or removed
-    """
-    # Get list of entries from .gistall (including commented-out ones for reference)
-    gistall_entries = set()
-    bag.dot_gistall = bag.home + "/.gistall"
-    if os.path.isfile(bag.dot_gistall):
-        lines = slurp(bag.dot_gistall).split("\n")
-        for line in lines:
-            myword = line.strip()
-            if len(myword) and (myword[0] != '#'):
-                gistall_entries.add(myword)
-
-    # Get list of actual subdirectories under ~/Documents/GitHub
-    actual_dirs = set()
-    for entry in sorted(os.listdir(bag.root_dir)):
-        full_path = os.path.join(bag.root_dir, entry)
-        if os.path.isdir(full_path) and not entry.startswith('.'):
-            actual_dirs.add(entry)
-
-    # Find differences
-    missing_from_gistall = sorted(actual_dirs - gistall_entries)
-    missing_from_disk    = sorted(gistall_entries - actual_dirs)
-
-    sep = "-" * 36
-    print(f"\n{sep}")
-    print(f"Checking .gistall list against actual directories")
-    print(f"  .gistall file : {bag.dot_gistall}")
-    print(f"  GitHub dir    : {bag.root_dir}")
-    print(f"{sep}")
-    print(f"  Entries in .gistall     : {len(gistall_entries)}")
-    print(f"  Directories on disk     : {len(actual_dirs)}")
-
-    if missing_from_gistall:
-        print(f"\n{sep}")
-        print(f"Directories on disk NOT in .gistall (may need to ADD):")
-        print(f"{sep}")
-        for d in missing_from_gistall:
-            print(f"  + {d}")
-    else:
-        print(f"\n  All directories on disk are listed in .gistall")
-
-    if missing_from_disk:
-        print(f"\n{sep}")
-        print(f"Entries in .gistall with NO directory on disk (may need to REMOVE):")
-        print(f"{sep}")
-        for d in missing_from_disk:
-            print(f"  - {d}")
-    else:
-        print(f"\n  All .gistall entries have matching directories on disk")
-
-    if not missing_from_gistall and not missing_from_disk:
-        print(f"\n  .gistall is fully in sync with directories on disk")
-
-    print()
+    """Set bag.repo_dirs to git repos at depth 1 and 2."""
+    is_repo = lambda rel: os.path.exists(
+        os.path.join(bag.root_dir, rel, ".git"))
+    mylist = []
+    for top in subdirs(bag.root_dir):
+        if is_repo(top):
+            mylist.append(top)
+        for sub in subdirs(os.path.join(bag.root_dir, top)):
+            rel = top + "/" + sub
+            if is_repo(rel):
+                mylist.append(rel)
+    bag.repo_dirs = mylist
 
 # ---------------------------------------------------------------
 def myexit(bag):
@@ -226,20 +175,15 @@ def main(bag):
     bag.init_dir = os.getcwd() # initial directory
     bag.home = os.path.expanduser("~")
     bag.root_dir = bag.home + "/" + ROOT_DIR
+    chdir_to_gh(bag)
     set_bag_repo_dirs(bag)
 
-    # if --check flag, just compare lists and exit
-    if bag.check_dirs:
-        check_dirs_vs_gistall(bag)
+    if bag.list_repos:
+        print("\n".join(bag.repo_dirs))
         myexit(bag)
 
-    chdir_to_gh(bag)
     bag.cmd_template = make_cmd_template(bag)
     for repo_dir in bag.repo_dirs:
-        if not os.path.isdir(repo_dir):
-            if bag.verbose:
-                print(f"\n{bag.sep} directory {repo_dir} doesn't exist, skipping ...\n")
-            continue
         mycmd = bag.cmd_template.replace("__REPO_DIR__",repo_dir).strip()
         if bag.verbose:
             print(mycmd,"\n")
