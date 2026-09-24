@@ -4,6 +4,7 @@
 # gistall.py
 # checks status of all git repos found in
 #   ~/Documents/GitHub/*  and  ~/Documents/GitHub/*/*
+# excluding ~/Documents/GitHub/KEEP_OLD/
 # It effectively runs "gist" command in all repos directories.
 # To use it, create a shell wrapper "bin/gistall"
 #    chmod +x ~/bin/gistall
@@ -35,6 +36,7 @@ import myutil
 from myutil import *
 
 ROOT_DIR = "Documents/GitHub"
+EXCLUDE_DIRS = {"KEEP_OLD"}  # top-level dirs to skip entirely
 
 # ---------------------------------------------------------------
 def make_cmd_template(bag):
@@ -109,6 +111,8 @@ def set_bag_repo_dirs(bag):
         os.path.join(bag.root_dir, rel, ".git"))
     mylist = []
     for top in subdirs(bag.root_dir):
+        if top in EXCLUDE_DIRS:
+            continue
         if is_repo(top):
             mylist.append(top)
         for sub in subdirs(os.path.join(bag.root_dir, top)):
