@@ -3,10 +3,12 @@
 # vid_info - Display video resolution, duration, and file size
 # Usage: vid_info <input_file>
 
-if [ -z "$1" ]; then
+if [ -z "$1" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
     echo "Usage: vid_info <input_file>"
     echo "Example: vid_info ./crocodile.mp4"
-    exit 1
+    echo ""
+    echo "Displays video resolution, duration, and file size."
+    [ -z "$1" ] && exit 1 || exit 0
 fi
 
 input_file="$1"

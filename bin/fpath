@@ -12,7 +12,7 @@ use strict;
 my $short_output = 0;
 
 if (@ARGV) {
-  my @args = @ARGV; 
+  my @args = @ARGV;
   @ARGV = ();
   for my $arg (@args) {
     usage() if ($arg =~ m/^\-h/i); # this will exit;
@@ -93,7 +93,7 @@ sub myprocess {
 }
 
 # ---------------------------------------------------------------
-# mypwd() - returns current dir as bash sees it 
+# mypwd() - returns current dir as bash sees it
 # ---------------------------------------------------------------
 sub mypwd {
   my $txt = qx{bash -c 'pwd'};
@@ -146,7 +146,7 @@ sub my_abs_path {
 }
 
 # ---------------------------------------------------------------
-# resolve_abs_link($abs_link) - returns abs path after 1-step of resolving 
+# resolve_abs_link($abs_link) - returns abs path after 1-step of resolving
 # ---------------------------------------------------------------
 sub resolve_abs_link {
   my $entry = $_[0];
@@ -157,4 +157,3 @@ sub resolve_abs_link {
 }
 
 __END__
-

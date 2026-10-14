@@ -139,6 +139,7 @@ def rename_if_needed(myfile):
                       .replace("'", '_')
                       .replace('&', '_')
                       .replace('`', '_')
+                      .replace('https﹕','https')
                       )
     if myfile2 == myfile:
         return 0
@@ -175,7 +176,7 @@ def clean_names_directories():
             if in_skip_list(MYDIR+"/"+dd):
                 continue
             dirs += [dd]
-        print(f"N dirs  = {len(dirs1):10,d}")
+        print(f"N dirs  = {len(dirs):10,d}")
         # ----------------------------------
         # rename directories (spaces and quotes to underscores)
         N = len(dirs)

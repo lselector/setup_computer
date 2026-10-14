@@ -13,7 +13,7 @@ def hexdump (fh):
   global mymap
   pos = 0
   while 1:
-    buf = list(fh.read (16))
+    buf = fh.read (16)
     length = len (buf)
     if length == 0:
       return
@@ -24,7 +24,11 @@ def hexdump (fh):
       if i > 0 and i % 4 == 0:
         hex = hex + " "
       hex = hex + ("%02x " % c)
-      asc = asc + mymap[c]
+      if c >= 32 and c <= 127:
+          c = chr(c)
+      else:
+          c = '.'
+      asc = asc + c
     print("%05x: %-51s %s" % (pos, hex, asc))
     pos = pos + 16
 
@@ -34,7 +38,7 @@ def hexdump (fh):
 if len (sys.argv) < 2:
   hexdump (sys.stdin)
 else:
-  for fname in sys.argv[1:]:
-    f = open (fname, "rb")
+  for name in sys.argv[1:]:
+    f = open (name, "rb")
     hexdump (f)
     f.close ()

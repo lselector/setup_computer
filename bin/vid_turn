@@ -4,10 +4,13 @@
 # Usage: vid_turn <input_file>
 # Output: Creates a 1280x720 horizontal video with white padding on sides
 
-if [ -z "$1" ]; then
+if [ -z "$1" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
     echo "Usage: vid_turn <input_file>"
     echo "Example: vid_turn ./crocodile.mp4"
-    exit 1
+    echo ""
+    echo "Converts vertical video to horizontal (1280x720) with white padding on sides."
+    echo "Output: <input_file>_horizontal.mp4"
+    [ -z "$1" ] && exit 1 || exit 0
 fi
 
 input_file="$1"

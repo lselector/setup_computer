@@ -42,6 +42,44 @@ is_image_file() {
 
 # ---- Parse arguments ----
 JSON_FILE=""
+if [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
+    echo "vid_concat - Concatenate videos and/or images into one video"
+    echo ""
+    echo "Usage: vid_concat <file1> <file2> [file3 ...]"
+    echo "       vid_concat -j <config.json>"
+    echo ""
+    echo "Examples:"
+    echo "  vid_concat clip1.mp4 clip2.mp4 clip3.mp4"
+    echo "  vid_concat clip1.mp4 photo.jpg clip2.mp4"
+    echo "  vid_concat -j config.json"
+    echo ""
+    echo "Concatenates two or more video/image files into one ${WIDTH}x${HEIGHT} video."
+    echo "All inputs are scaled and padded to ${WIDTH}x${HEIGHT} (black padding,"
+    echo "preserving original aspect ratio)."
+    echo ""
+    echo "Supported video formats: mp4, mov, avi, mkv, and other ffmpeg-supported formats"
+    echo "Supported image formats: avif, heic, jpeg, jpg, png, webp, gif, bmp"
+    echo "Images are displayed for ${IMAGE_DURATION} seconds each."
+    echo ""
+    echo "Output: <first_file>_concat.mp4"
+    echo ""
+    echo "JSON mode (-j):"
+    echo "  Provide a JSON file with optional titles and media paths:"
+    echo '  ['
+    echo '      ["Title for Video 1", "video1.mp4"],'
+    echo '      ["", "video2.mp4"],'
+    echo '      ["Title for Image", "image1.jpg"],'
+    echo '      ["", "image2.png"],'
+    echo '      ["Title for Video 3", "video3.mp4"]'
+    echo '  ]'
+    echo ""
+    echo "  Each non-empty title becomes a ${TITLE_DURATION}-second title card"
+    echo "  (black background, white centered text) prepended before its media."
+    echo '  Use "" (empty string) for no title card.'
+    echo "  Long titles are automatically word-wrapped."
+    exit 0
+fi
+
 if [ "$1" = "-j" ]; then
     if [ -z "$2" ]; then
         echo "Error: -j requires a JSON file argument"

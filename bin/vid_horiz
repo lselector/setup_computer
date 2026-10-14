@@ -4,12 +4,12 @@
 # Usage: vid_horiz input_file.mp4
 # Output: input_file_horizontal.mp4
 
-if [ -z "$1" ]; then
+if [ -z "$1" ] || [ "$1" = "-h" ] || [ "$1" = "--help" ]; then
     echo "Usage: vid_horiz <input_file>"
     echo "Example: vid_horiz ./crocodile.mp4"
     echo ""
     echo "Converts vertical video to horizontal 1280x720 with white padding on sides."
-    exit 1
+    [ -z "$1" ] && exit 1 || exit 0
 fi
 
 input_file="$1"

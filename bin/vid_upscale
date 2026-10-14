@@ -1,61 +1,150 @@
 #!/bin/bash
 
-# vid_upscale - Upscale a video to 1920x1080 HD resolution
-# Usage: vid_upscale <input_file>
+# vid_upscale - Upscale a video to 1920x1080 HD and normalize audio volume
+# Usage: vid_upscale [--no-vol] <input_file>
+# Output: <input_file>_HD.<ext>
+#
+# By default, audio is normalized to -16 LUFS (EBU R128 two-pass) so that
+# lecture/voice recordings are loud enough without clipping.
+# Use --no-vol to skip audio normalization and copy the audio stream as-is.
 
-if [ -z "$1" ]; then
-    echo "Usage: vid_upscale <input_file>"
-    echo "Example: vid_upscale ./crocodile.mp4"
+TARGET_LUFS=-16
+TARGET_TP=-1.5
+TARGET_LRA=11
+
+# Parse arguments
+NORMALIZE=true
+input_file=""
+
+for arg in "$@"; do
+    if [ "$arg" = "--no-vol" ]; then
+        NORMALIZE=false
+    elif [ "$arg" = "-h" ] || [ "$arg" = "--help" ]; then
+        echo "Usage: vid_upscale [--no-vol] <input_file>"
+        echo "Example: vid_upscale ./lecture.mp4"
+        echo "         vid_upscale --no-vol ./crocodile.mp4"
+        echo ""
+        echo "Upscales video to 1920x1080 and normalizes audio to ${TARGET_LUFS} LUFS."
+        echo "Use --no-vol to skip audio normalization."
+        echo "Output: <input_file>_HD.<ext>"
+        exit 0
+    else
+        input_file="$arg"
+    fi
+done
+
+if [ -z "$input_file" ]; then
+    echo "Usage: vid_upscale [--no-vol] <input_file>"
+    echo "Example: vid_upscale ./lecture.mp4"
+    echo "         vid_upscale --no-vol ./crocodile.mp4"
+    echo ""
+    echo "Upscales video to 1920x1080 and normalizes audio to ${TARGET_LUFS} LUFS."
+    echo "Use --no-vol to skip audio normalization."
     exit 1
 fi
 
-input_file="$1"
-
-# Check if input file exists
 if [ ! -f "$input_file" ]; then
     echo "Error: Input file '$input_file' not found"
     exit 1
 fi
 
-# Get the directory, filename without extension, and extension
 dir=$(dirname "$input_file")
 filename=$(basename "$input_file")
 name="${filename%.*}"
 ext="${filename##*.}"
 
-# Create output filename with _HD suffix
 output_file="${dir}/${name}_HD.${ext}"
 
-# Get input file info
+# Input info
 input_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$input_file" 2>/dev/null)
 input_duration=$(ffprobe -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 "$input_file" 2>/dev/null | awk '{printf "%.2f seconds", $1}')
 input_size=$(ls -l "$input_file" | awk '{printf "%.2f MB", $5/1024/1024}')
 
 echo "Input file: $input_file"
 echo "  Resolution: $input_resolution"
-echo "  Duration: $input_duration"
-echo "  File size: $input_size"
+echo "  Duration:   $input_duration"
+echo "  File size:  $input_size"
 echo ""
 echo "Output file: $output_file"
 echo ""
-echo "Upscaling to 1920x1080..."
 
-# Run ffmpeg to upscale
-ffmpeg -i "$input_file" -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=black" -c:v libx264 -preset slow -crf 18 -c:a copy "$output_file"
+# Check if audio stream exists (skip normalization silently if no audio)
+has_audio=$(ffprobe -v error -select_streams a:0 -show_entries stream=codec_type -of csv=p=0 "$input_file" 2>/dev/null)
+if [ -z "$has_audio" ]; then
+    NORMALIZE=false
+fi
+
+# --- Audio normalization (two-pass) ---
+if [ "$NORMALIZE" = true ]; then
+    echo "Audio: normalizing to ${TARGET_LUFS} LUFS  |  true peak: ${TARGET_TP} dBTP"
+    echo ""
+    echo "Pass 1/2: Analyzing audio levels..."
+
+    loudnorm_output=$(ffmpeg -i "$input_file" \
+        -af "loudnorm=I=${TARGET_LUFS}:TP=${TARGET_TP}:LRA=${TARGET_LRA}:print_format=json" \
+        -f null - 2>&1)
+
+    loudnorm_json=$(echo "$loudnorm_output" | awk '/^\{/,/^\}/')
+
+    if [ -z "$loudnorm_json" ]; then
+        echo "Error: Failed to parse loudness analysis output."
+        echo "Raw output:"
+        echo "$loudnorm_output"
+        exit 1
+    fi
+
+    measured_I=$(echo      "$loudnorm_json" | grep '"input_i"'       | sed 's/.*: "\([-0-9.]*\)".*/\1/')
+    measured_TP=$(echo     "$loudnorm_json" | grep '"input_tp"'      | sed 's/.*: "\([-0-9.]*\)".*/\1/')
+    measured_LRA=$(echo    "$loudnorm_json" | grep '"input_lra"'     | sed 's/.*: "\([-0-9.]*\)".*/\1/')
+    measured_thresh=$(echo "$loudnorm_json" | grep '"input_thresh"'  | sed 's/.*: "\([-0-9.]*\)".*/\1/')
+    offset=$(echo          "$loudnorm_json" | grep '"target_offset"' | sed 's/.*: "\([-0-9.]*\)".*/\1/')
+
+    if [ -z "$measured_I" ] || [ -z "$measured_TP" ] || [ -z "$measured_LRA" ] || [ -z "$measured_thresh" ]; then
+        echo "Error: Could not parse measured audio levels."
+        exit 1
+    fi
+
+    echo "  Measured integrated loudness: ${measured_I} LUFS  (target: ${TARGET_LUFS} LUFS)"
+    echo "  Measured true peak:           ${measured_TP} dBTP"
+    echo "  Measured loudness range:      ${measured_LRA} LU"
+    echo ""
+    echo "Pass 2/2: Upscaling video + applying audio normalization..."
+
+    audio_filter="loudnorm=I=${TARGET_LUFS}:TP=${TARGET_TP}:LRA=${TARGET_LRA}:\
+measured_I=${measured_I}:measured_TP=${measured_TP}:measured_LRA=${measured_LRA}:\
+measured_thresh=${measured_thresh}:offset=${offset}:linear=true"
+
+    ffmpeg -i "$input_file" \
+        -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=black" \
+        -c:v libx264 -preset slow -crf 18 \
+        -af "$audio_filter" \
+        -c:a aac -b:a 192k \
+        "$output_file"
+else
+    echo "Upscaling to 1920x1080..."
+
+    ffmpeg -i "$input_file" \
+        -vf "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=black" \
+        -c:v libx264 -preset slow -crf 18 \
+        -c:a copy \
+        "$output_file"
+fi
 
 if [ $? -eq 0 ]; then
-    # Get output file info
     output_resolution=$(ffprobe -v error -select_streams v:0 -show_entries stream=width,height -of csv=s=x:p=0 "$output_file" 2>/dev/null)
     output_size=$(ls -l "$output_file" | awk '{printf "%.2f MB", $5/1024/1024}')
-    
+
     echo ""
     echo "Done!"
     echo ""
-    echo "=== Comparison ==="
+    echo "=== Summary ==="
     echo "Input:  $input_file"
     echo "  Resolution: $input_resolution | File size: $input_size"
     echo "Output: $output_file"
     echo "  Resolution: $output_resolution | File size: $output_size"
+    if [ "$NORMALIZE" = true ]; then
+        echo "  Audio: ${measured_I} LUFS  →  ${TARGET_LUFS} LUFS"
+    fi
 else
     echo "Error: ffmpeg failed"
     exit 1
