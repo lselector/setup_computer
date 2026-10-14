@@ -6,4 +6,10 @@
 git add .
 git ci -m "${*:-update}"
 git push
-gist
+
+echo "------------------------------------- files which diff from remote repo"
+git fetch;
+git diff --name-only
+echo "------------------------------------- files changed locally"
+git status .
+echo "-------------------------------------"
