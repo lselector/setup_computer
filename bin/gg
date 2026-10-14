@@ -1,8 +1,9 @@
 #! /bin/bash
 
 # gg - runs short sequence to submit and push an update
+# usage: gg [commit message]   (default message: "update")
 
 git add .
-git ci -m'update'
+git ci -m "${*:-update}"
 git push
 gist
